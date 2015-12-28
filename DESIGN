@@ -13,10 +13,10 @@ Protocol
    basestring. It has attributes that make it possible to determine if it is
    a line for stderr or stdout.
 6. A command must not raise an exception.
-
-
-Open questions
---------------
-
-1. How are return-codes handled? It must be possible to return a code for error
-   or success.
+7. A command must process the input generater (inp) line by line, not trying to
+   obtain the complete input (consider endless input).
+8. The 'com' function corresponds to the subprocess.Popen.communicate function
+   and returns a tuple of stdout and stderr output.
+9. Every command has a 'ret' attribute that holds its return code after its
+   generator is exhausted. 
+10. The 'ret' command returns the return code of the last finished command.
