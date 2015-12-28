@@ -1,0 +1,22 @@
+Protocol
+--------
+
+1. Every command is a Python function.
+2. A command can accept specific arguments.
+3. The argument called 'inp' represents an equivalent to stdin. This argument 
+   must be an iterable that yields strings. One string represents one line. Line
+   breaks are not included.
+4. Every command instance is an generator that yields strings. These strings 
+   represent an equivalent to stdout and stderr. Every string represents one 
+   line. Line breaks are not included.
+5. Every string that is yielded by a command is an instance derived from 
+   basestring. It has attributes that make it possible to determine if it is
+   a line for stderr or stdout.
+6. A command must not raise an exception.
+
+
+Open questions
+--------------
+
+1. How are return-codes handled? It must be possible to return a code for error
+   or success.
