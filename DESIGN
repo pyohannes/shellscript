@@ -20,3 +20,10 @@ Protocol
 9. Every command has a 'ret' attribute that holds its return code after its
    generator is exhausted. 
 10. The 'ret' command returns the return code of the last finished command.
+
+
+Design decisions
+----------------
+D1: Every command must be importable by the 'shellscript' module.
+D2: Command names must be as short as possible and match names of existing
+    corresponding POSIX shell commands.
