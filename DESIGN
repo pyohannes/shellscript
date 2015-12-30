@@ -1,0 +1,29 @@
+Protocol
+--------
+
+1. Every command is a Python function.
+2. A command can accept specific arguments.
+3. The argument called 'inp' represents an equivalent to stdin. This argument 
+   must be an iterable that yields strings. One string represents one line. Line
+   breaks are not included.
+4. Every command instance is an generator that yields strings. These strings 
+   represent an equivalent to stdout and stderr. Every string represents one 
+   line. Line breaks are not included.
+5. Every string that is yielded by a command is an instance derived from 
+   basestring. It has attributes that make it possible to determine if it is
+   a line for stderr or stdout.
+6. A command must not raise an exception.
+7. A command must process the input generater (inp) line by line, not trying to
+   obtain the complete input (consider endless input).
+8. The 'com' function corresponds to the subprocess.Popen.communicate function
+   and returns a tuple of stdout and stderr output.
+9. Every command has a 'ret' attribute that holds its return code after its
+   generator is exhausted. 
+10. The 'ret' command returns the return code of the last finished command.
+
+
+Design decisions
+----------------
+D1: Every command must be importable by the 'shellscript' module.
+D2: Command names must be as short as possible and match names of existing
+    corresponding POSIX shell commands.
