@@ -64,6 +64,18 @@ If possible command names should match names of corresponding POSIX shell
 commands.
 
 
+Commands
+--------
+
+.. automodule:: shellscript.proto
+
+.. autoclass:: OutString
+    :members:
+
+.. autoclass:: ErrString
+    :members:
+
+
 Indices and tables
 ==================
 
