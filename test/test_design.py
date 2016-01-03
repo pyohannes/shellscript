@@ -35,7 +35,6 @@ def test_valid():
     for command, kwargs, inp in _get_all_commands_and_valid_input():
         c = command(inp=inp, **kwargs) 
         assert c.ret == 0 
-        assert shellscript.ret() == 0
 
 
 def test_invalid():
@@ -46,7 +45,6 @@ def test_invalid():
         for kwargs, inp in testmod.invalid_input():
             c = command(inp=inp, **kwargs)
             assert c.ret != 0
-            assert shellscript.ret() != 0 
 
 
 def test_output():

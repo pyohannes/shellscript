@@ -75,6 +75,8 @@ Commands
 .. autoclass:: ErrString
     :members:
 
+.. automodule:: shellscript
+
 
 Indices and tables
 ==================
