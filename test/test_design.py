@@ -34,17 +34,21 @@ def test_valid():
     # 8. Every command instance has a ret attribute.
     for command, kwargs, inp in _get_all_commands_and_valid_input():
         c = command(inp=inp, **kwargs) 
+        list(c)
         assert c.ret == 0 
 
 
 def test_invalid():
     # 7. A command must not raise an exception
     # 8. Every command instance has a ret attribute.
+    # 9. On error every command generator must yield an ErrString.
     for command in shellscript.get_all_commands():
         testmod = _get_test_module_for_command(command)
         for kwargs, inp in testmod.invalid_input():
             c = command(inp=inp, **kwargs)
+            out = list(c)
             assert c.ret != 0
+            assert [ l for l in out if isinstance(l, ErrString) ]
 
 
 def test_output():

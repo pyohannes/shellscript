@@ -2,6 +2,11 @@ import os
 import glob
 import string
 
+
+class ProtocolError(Exception):
+    pass
+
+
 class OutString(str):
     """
     A line of normal output yielded by a command instance. This corresponds
@@ -23,32 +28,37 @@ class Command(object):
     def __init__(self, inp=None):
         self._inp = inp
         self.ret = 0
+        self._buffer = []
+        self._stop = False
 
-    def set_error(self, err=1):
-        self.ret = err
+    def stop_with_error(self, msg, ret):
+        self.ret = ret
+        self._buffer.append(ErrString(msg))
+        return self.stop()
+
+    def stop(self):
+        self._stop = True
+        raise StopIteration
 
     def __iter__(self):
         return self
 
     def __next__(self):
+        if self._buffer:
+            ret = self._buffer[0]
+            del self._buffer[0]
+            return ret
+        if self._stop:
+            #shellscript.settings.set_lastreturn(self._returncode)
+            raise StopIteration
         try:
             return self.generator_step() or OutString('')
         except StopIteration:
-            #shellscript.settings.set_lastreturn(self._returncode)
-            raise
+            self._stop = True
+            return self.__next__()
 
     def __repr__(self):
         return '\n'.join(self)
-
-
-class OnceReturnCommand(Command):
-
-    def __next__(self):
-        if hasattr(self, '_step_done'):
-            raise StopIteration()
-        else:
-            self._step_done = True
-        return super(OnceReturnCommand, self).__next__()
 
 
 def resolve(arg):

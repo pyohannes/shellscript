@@ -1,4 +1,5 @@
-import shellscript.cmd.cd
+from .cmd.cd import cd
+from .util import com
 
 
 def get_all_commands():
@@ -7,5 +8,5 @@ def get_all_commands():
 
     """
     return [
-            shellscript.cmd.cd.cd
+            cd
            ]
