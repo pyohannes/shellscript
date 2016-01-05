@@ -51,6 +51,10 @@ yielded strings that are of the type *ErrString*.
 This attribute holds the return code of the command instance after its generator 
 is exhausted.
 
+9. On error, every command generator must yield an *ErrString*.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This is necessary to diagnose error causes.
+
 
 Design
 ------
@@ -62,6 +66,19 @@ Design
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If possible command names should match names of corresponding POSIX shell
 commands.
+
+
+Protocol API
+------------
+
+.. automodule:: shellscript.proto
+
+.. automodule:: shellscript.util
+
+Commands
+--------
+
+.. automodule:: shellscript.cmd.cd
 
 
 Indices and tables
