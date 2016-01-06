@@ -56,3 +56,10 @@ def test_no_alteration_on_error(original_env):
     for kwargs, inp in invalid_input():
         com(cd(inp=inp, **kwargs))
         assert os.getcwd() == curr
+
+
+def test_no_output_on_success(original_env):
+    for kwargs, inp in valid_input():
+        out, err = com(cd(inp=inp, **kwargs))
+        assert len(out) == 0
+        assert len(err) == 0
