@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import string
 
@@ -57,8 +58,14 @@ class Command(object):
             self._stop = True
             return self.__next__()
 
-    def __repr__(self):
-        return '\n'.join(self)
+    def interact(self):
+        for l in self:
+            if isinstance(l, OutString):
+                sys.stdout.write('%s\n' % l)
+            elif isinstance(l, ErrString):
+                sys.stderr.write('%s\n' % l)
+            else:
+                raise ProtocolError("Not an OutString or ErrString: '%s'" % l)
 
 
 def resolve(arg):
