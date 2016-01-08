@@ -1,0 +1,5 @@
+Every command should be tested according to this criteria:
+
+    1. That they perform proper an valid input.
+    2. That wildcard arguments are propery treated.
+    3. That all arguments are used.

@@ -24,7 +24,6 @@ def invalid_input():
 def test_back_relative(original_env):
     curr = os.getcwd()
     cmd = cd("..")
-    com(cmd)
     assert os.getcwd() == os.path.dirname(curr)
     assert cmd.ret == 0
 
@@ -32,21 +31,18 @@ def test_back_relative(original_env):
 def test_back_absolute(original_env):
     curr = os.getcwd()
     cmd = cd(os.path.dirname(curr))
-    com(cmd)
     assert os.getcwd() == os.path.dirname(curr)
     assert cmd.ret == 0
 
 
 def test_go_home(original_env):
     cmd = cd()
-    com(cmd)
     assert os.getcwd() == os.environ['HOME']
     assert cmd.ret == 0
 
 
 def test_go_home_via_env(original_env):
     cmd = cd('$HOME')
-    com(cmd)
     assert os.getcwd() == os.environ['HOME']
     assert cmd.ret == 0
 
@@ -54,5 +50,11 @@ def test_go_home_via_env(original_env):
 def test_no_alteration_on_error(original_env):
     curr = os.getcwd()
     for kwargs in invalid_input():
-        com(cd(**kwargs))
+        cd(**kwargs)
         assert os.getcwd() == curr
+
+
+def test_wildcard(original_env, tmpdir):
+    d = tmpdir.mkdir('abcdefghijkl')
+    cd(path=os.path.join(tmpdir.strpath, 'abcd*'))
+    assert os.getcwd() == d.strpath
