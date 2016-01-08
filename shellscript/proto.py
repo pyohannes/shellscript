@@ -82,6 +82,9 @@ class Command(object):
         self._stop = True
         raise StopIteration
 
+    def buffer_return(self, value):
+        self._buffer.insert(0, value)
+
     def __iter__(self):
         return self
 
@@ -120,8 +123,9 @@ class Command(object):
                 return lambda s: sys.stdout.write('%s\n' % s)
             elif target == dev.err:
                 return lambda s: sys.stderr.write('%s\n' % s)
-            elif hasattr(target, 'write'):
-                return lambda s: target.write('%s\n' % s)
+            elif hasattr(target, 'write') and hasattr(target, 'tell'):
+                return lambda s: target.write('%s%s' % (
+                    '\n' if target.tell() else '', s))
             elif hasattr(target, 'append'):
                 return lambda s: target.append(s)
             else:
