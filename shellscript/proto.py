@@ -8,6 +8,25 @@ class ProtocolError(Exception):
     pass
 
 
+class dev(object):
+    """
+    Enumerator that can be used to redirect the output of *Command* objects.
+    The enumerator values can be passed to the *out*, *err* and *outerr* 
+    arguments.
+
+    Attributes:
+        out: Redirection to *stdout*.
+        err: Redirection to *stderr*.
+        itr: Output can be retrieved by iterating over the *Command* object.
+        nul: The output is discarded.
+    """
+
+    out = 1
+    err = 2
+    itr = 3
+    nul = 4
+
+
 class OutString(str):
     """
     A line of normal output yielded by a command instance. This corresponds
@@ -26,11 +45,33 @@ class ErrString(str):
 
 class Command(object):
 
-    def __init__(self, inp=None):
-        self._inp = inp
+    def __init__(self, out=None, err=None, outerr=None):
+        if outerr is not None:
+            self._out = self._err = outerr
+        else:
+            self._out = dev.out if out is None else out
+            self._err = dev.err if err is None else err
         self.ret = 0
         self._buffer = []
         self._stop = False
+        if self.is_piped:
+            self._out._inp = self
+        self.interact_attempt()
+
+    @property
+    def is_piped(self):
+        return isinstance(self._out, Command)
+
+    @property
+    def is_ready(self):
+        return True
+
+    @property
+    def is_iter(self):
+        if self.is_piped:
+            return self._out.is_piped
+        else:
+            return dev.itr in (self._out, self._err)
 
     def stop_with_error(self, msg, ret):
         self.ret = ret
@@ -45,6 +86,8 @@ class Command(object):
         return self
 
     def __next__(self):
+        if self.is_piped:
+            return self._out.__next__()
         if self._buffer:
             ret = self._buffer[0]
             del self._buffer[0]
@@ -58,12 +101,38 @@ class Command(object):
             self._stop = True
             return self.__next__()
 
+    def __repr__(self):
+        return ''
+
+    def interact_attempt(self):
+        if not self.is_ready:
+            return
+        elif self.is_iter:
+            return
+        elif self.is_piped and self._out.is_ready:
+            self._out.interact_attempt()
+        else:
+            self.interact()
+
     def interact(self):
+        def make_writer(target):
+            if target == dev.out:
+                return lambda s: sys.stdout.write('%s\n' % s)
+            elif target == dev.err:
+                return lambda s: sys.stderr.write('%s\n' % s)
+            elif hasattr(target, 'write'):
+                return lambda s: target.write('%s\n' % s)
+            elif hasattr(target, 'append'):
+                return lambda s: target.append(s)
+            else:
+                return lambda s: None
+        outwriter = make_writer(self._out)
+        errwriter = make_writer(self._err)
         for l in self:
             if isinstance(l, OutString):
-                sys.stdout.write('%s\n' % l)
+                outwriter(l)
             elif isinstance(l, ErrString):
-                sys.stderr.write('%s\n' % l)
+                errwriter(l)
             else:
                 raise ProtocolError("Not an OutString or ErrString: '%s'" % l)
 

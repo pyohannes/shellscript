@@ -18,40 +18,38 @@ protocol is designed to integrate other system commands seamless with
 1. Every command is a Python class.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-2. Every command constructor excepts an argument called *inp*.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This argument must be an iterable that yields strings.  One string represents 
-one line. Line breaks are not included in the strings. These strings are 
-equivalent to _stdin.
+2. Every command constructor excepts the arguments *out*, *err* and *outerr*.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Those arguments must either be commands, file objects, lists  or a 
+*shellscript.dev* enumeration value. If *outerr* is set, this overrides 
+settings for *out* and *err*. 
 
-3. A command must never try to exhaust the input generator (*inp*).
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This is necessary for dealing with endless input generators.
-
-4. A command constructor can accept further arguments.
+3. A command constructor can accept further arguments.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A command can accept further arguments specific to the command.
 
-5. Every command instance is a generator that yields strings.
+4. Every command instance is a generator that yields strings.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Per default the command generator exhausts itself once on initialization.
+This behaviour can be altered by passing a value of *shellscript.dev.iter* to
+*out*, *err* or *outerr*.
 One string represents one line. Line breaks are not included in the strings.
-These strings are the equivalents to *stdout* and *stderr*.
 
-6. Every string yielded by a command is an instance of *OutString* or *ErrString*.
+5. Every string yielded by a command is an instance of *OutString* or *ErrString*.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This makes it possible to differentiate between *stdout* and *stderr* output.
 
-7. A command must not raise an exception.
+6. A command must not raise an exception.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 An error is indicated by the commands return code. Error messages are given via 
 yielded strings that are of the type *ErrString*. 
 
-8. Every command instance has a *ret* attribute.
+7. Every command instance has a *ret* attribute.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This attribute holds the return code of the command instance after its generator 
 is exhausted.
 
-9. On error, every command generator must yield an *ErrString*.
+8. On error, every command generator must yield an *ErrString*.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This is necessary to diagnose error causes.
 

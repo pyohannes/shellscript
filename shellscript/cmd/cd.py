@@ -8,15 +8,15 @@ class cd(Command):
     """Change the current working directory to path. The variable HOME is the 
     default path.
 
-    ret is set 0 on success and 1 on failure.
+    ret is set to 0 on success and to 1 on failure.
 
     Yields:
         shellscript.proto.OutString, shellscript.proto.ErrString:
     """
 
     def __init__(self, path=None, *args, **kwargs):
-        super(cd, self).__init__(*args, **kwargs)
         self._path = resolve(path)
+        super(cd, self).__init__(*args, **kwargs)
 
     def generator_step(self):
         if isinstance(self._path, list) and self._path:

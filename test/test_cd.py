@@ -5,7 +5,7 @@ from util import original_env
 
 
 def valid_input():
-    yield dict(path=os.getcwd()), []
+    yield dict(path=os.getcwd())
 
 
 def invalid_input():
@@ -13,11 +13,11 @@ def invalid_input():
     p = os.getcwd()
     while os.path.exists(p):
         p += 'x'
-    yield dict(path=p), [] 
+    yield dict(path=p)
 
     home = os.environ['HOME']
     del os.environ['HOME']
-    yield dict(), []
+    yield dict()
     os.environ['HOME'] = home
 
 
@@ -53,6 +53,6 @@ def test_go_home_via_env(original_env):
 
 def test_no_alteration_on_error(original_env):
     curr = os.getcwd()
-    for kwargs, inp in invalid_input():
-        com(cd(inp=inp, **kwargs))
+    for kwargs in invalid_input():
+        com(cd(**kwargs))
         assert os.getcwd() == curr
