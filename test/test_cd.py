@@ -4,11 +4,12 @@ from shellscript import com, cd
 from util import original_env
 
 
-def valid_input():
+def valid_input(tmpdir):
     yield dict(path=os.getcwd())
+    yield dict(path=tmpdir.strpath)
 
 
-def invalid_input():
+def invalid_input(tmpdir):
 
     p = os.getcwd()
     while os.path.exists(p):
@@ -47,9 +48,9 @@ def test_go_home_via_env(original_env):
     assert cmd.ret == 0
 
 
-def test_no_alteration_on_error(original_env):
+def test_no_alteration_on_error(original_env, tmpdir):
     curr = os.getcwd()
-    for kwargs in invalid_input():
+    for kwargs in invalid_input(tmpdir):
         cd(**kwargs)
         assert os.getcwd() == curr
 

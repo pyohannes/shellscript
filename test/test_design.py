@@ -10,10 +10,10 @@ def _get_test_module_for_command(command):
     return __import__('test_%s' % command.__name__)
 
 
-def _get_all_commands_and_input(inputfunc='valid_input'):
+def _get_all_commands_and_input(tmpdir, inputfunc='valid_input'):
     for command in shellscript.get_all_commands():
         testmod = _get_test_module_for_command(command)
-        for kwargs in getattr(testmod, inputfunc)():
+        for kwargs in getattr(testmod, inputfunc)(tmpdir):
             yield command, kwargs
 
 
@@ -23,9 +23,9 @@ def assert_proper_out(out):
         assert isinstance(l, OutString) or isinstance(l, ErrString)
 
 
-def test_call():
+def test_call(tmpdir):
     # 1. Every command is a Python class.
-    for command, _ in _get_all_commands_and_input():
+    for command, _ in _get_all_commands_and_input(tmpdir):
         command()
 
     
@@ -34,7 +34,7 @@ def test_valid(tmpdir):
     #    *outerr*.
     # 7. Every command instance has a ret attribute.
     fname = tmpdir.mkdir('test').join('out.txt').strpath
-    for command, kwargs in _get_all_commands_and_input():
+    for command, kwargs in _get_all_commands_and_input(tmpdir):
         l = []
         with open(fname, 'w') as f:
             for out in (dev.out, dev.err, dev.itr, dev.nul, f, l):
@@ -49,29 +49,29 @@ def test_valid(tmpdir):
                 assert c.ret == 0 
 
 
-def test_invalid():
+def test_invalid(tmpdir):
     # 6. A command must not raise an exception
     # 7. Every command instance has a ret attribute.
     # 8. On error every command generator must yield an ErrString.
-    for command, kwargs in _get_all_commands_and_input('invalid_input'):
+    for command, kwargs in _get_all_commands_and_input(tmpdir, 'invalid_input'):
         c = command(err=dev.itr, **kwargs)
         out = list(c)
         assert c.ret != 0
         assert [ l for l in out if isinstance(l, ErrString) ]
 
 
-def test_output():
+def test_output(tmpdir):
     # 4. Every command instance is a generator that yields strings.
     # 5. Every string yielded by a command is an instance of OutString or
     #    ErrString.
-    for command, kwargs in _get_all_commands_and_input():
+    for command, kwargs in _get_all_commands_and_input(tmpdir):
         c = command(**kwargs)
         assert_proper_out(c)
 
 
-def test_generator():
+def test_generator(tmpdir):
     # 4. Every command instance is a generator that yields strings.
-    for command, kwargs in _get_all_commands_and_input('invalid_input'):
+    for command, kwargs in _get_all_commands_and_input(tmpdir, 'invalid_input'):
         c = command(**kwargs)
         out1 = list(c)
         assert_proper_out(out1)
@@ -83,7 +83,7 @@ def test_generator():
 def test_redirection(tmpdir):
     # 2. Every command constructor excepts the arguments *out*, *err* and 
     #    *outerr*.
-    for num, (command, kwargs) in enumerate(_get_all_commands_and_input()):
+    for num, (command, kwargs) in enumerate(_get_all_commands_and_input(tmpdir)):
         # file
         fname = tmpdir.mkdir('test_%d' % num).join('out.txt').strpath
         with open(fname, 'w') as f:
@@ -103,10 +103,10 @@ def test_redirection(tmpdir):
         assert file_content == iter_content == list_content
 
 
-def test_invalid_output():
+def test_invalid_output(tmpdir):
     # 2. Every command constructor excepts the arguments *out*, *err* and 
     #    *outerr*.
-    for command, kwargs in _get_all_commands_and_input():
+    for command, kwargs in _get_all_commands_and_input(tmpdir):
         for arg in ('out', 'err', 'outerr'):
             args = kwargs.copy()
             args[arg] = 3

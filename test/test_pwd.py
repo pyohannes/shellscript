@@ -4,11 +4,11 @@ from shellscript import pwd, cd, dev
 from util import original_env
 
 
-def valid_input():
+def valid_input(tmpdir):
     yield {}
 
 
-def invalid_input():
+def invalid_input(tmpdir):
     return []
 
 

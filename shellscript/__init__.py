@@ -1,7 +1,9 @@
-from .cmd.cd import cd
-from .cmd.pwd import pwd
 from .util import com
 from .proto import dev
+
+from .cmd.cat import cat
+from .cmd.cd import cd
+from .cmd.pwd import pwd
 
 
 def get_all_commands():
@@ -10,5 +12,5 @@ def get_all_commands():
 
     """
     return [
-            cd, pwd
+            cat, cd, pwd
            ]
