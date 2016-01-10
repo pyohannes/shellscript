@@ -51,16 +51,35 @@ class Command(object):
         else:
             self._out = dev.out if out is None else out
             self._err = dev.err if err is None else err
+        if self.is_piped:
+            self._out._inp = self
+        self._global_initialize()
+        self.interact_attempt()
+
+    def _global_initialize(self):
         self.ret = 0
         self._buffer = []
         self._stop = False
-        if self.is_piped:
-            self._out._inp = self
-        self.interact_attempt()
+        try:
+            self.initialize()
+        except StopIteration:
+            try:
+                self.stop()
+            except StopIteration: pass
+
+    def initialize(self):
+        pass
 
     @property
     def is_piped(self):
         return isinstance(self._out, Command)
+
+    @property
+    def is_input_piped(self):
+        try:
+            return isinstance(self._inp, Command)
+        except:
+            return False
 
     @property
     def is_ready(self):
@@ -75,7 +94,7 @@ class Command(object):
 
     def stop_with_error(self, msg, ret):
         self.ret = ret
-        self._buffer.append(ErrString(msg))
+        self.buffer_return(ErrString(msg))
         return self.stop()
 
     def stop(self):
@@ -86,10 +105,11 @@ class Command(object):
         self._buffer.insert(0, value)
 
     def __iter__(self):
+        self._global_initialize()
         return self
 
-    def __next__(self):
-        if self.is_piped:
+    def __next__(self, from_out=False):
+        if self.is_piped and not from_out:
             return self._out.__next__()
         if self._buffer:
             ret = self._buffer[0]

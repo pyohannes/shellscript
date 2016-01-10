@@ -3,6 +3,7 @@ from .proto import dev
 
 from .cmd.cat import cat
 from .cmd.cd import cd
+from .cmd.grep import grep
 from .cmd.pwd import pwd
 
 
@@ -12,5 +13,5 @@ def get_all_commands():
 
     """
     return [
-            cat, cd, pwd
+            cat, cd, grep, pwd
            ]
