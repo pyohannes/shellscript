@@ -2,6 +2,7 @@ import os
 import sys
 
 from shellscript.proto import Command, OutString, ErrString, resolve
+from shellscript.util import InputReader
 
 
 class cat(Command):
@@ -17,26 +18,18 @@ class cat(Command):
         shellscript.proto.OutString: The content of the files.
     """
     def __init__(self, f=None, *args, **kwargs):
-        self._files = resolve(f or [])
-        self._active_file = None
-        self._pos = 0
+        self._args = dict(
+                f=f)
         super(cat, self).__init__(*args, **kwargs)
 
+    def initialize(self):
+        self._iread = InputReader(self, resolve(self._args['f'] or []))
+
     def generator_step(self):
-        if not self._active_file:
-            if self._pos >= len(self._files):
-                self.stop()
-            else:
-                pos = self._pos
-                self._pos += 1
-                try:
-                    self._active_file = open(self._files[pos])
-                except:
-                    self.ret = 1
-                    return ErrString(sys.exc_info()[1])
         try:
-            return OutString(self._active_file.__next__().strip('\n'))
+            return OutString(self._iread.get_next_line())
         except StopIteration:
-            self._active_file.close()
-            self._active_file = None
-            return self.generator_step()
+            self.stop()
+        except:
+            self.ret = 1
+            return ErrString(sys.exc_info()[1])

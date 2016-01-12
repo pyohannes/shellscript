@@ -1,4 +1,3 @@
-from .util import com
 from .proto import dev
 
 from .cmd.cat import cat

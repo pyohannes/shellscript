@@ -1,6 +1,6 @@
 import os
 
-from shellscript import com, cd
+from shellscript import cd
 from util import original_env
 
 

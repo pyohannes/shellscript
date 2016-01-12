@@ -3,6 +3,7 @@ import sys
 import re
 
 from shellscript.proto import Command, OutString, ErrString, resolve
+from shellscript.util import InputReader
 
 
 class grep(Command):
@@ -22,7 +23,7 @@ class grep(Command):
         shellscript.proto.OutString: Lines matching *regex*.
     """
     def __init__(self, regex=None, f=None, *args, **kwargs):
-        self._args=dict(
+        self._args = dict(
                 regex=regex,
                 f=f)
         super(grep, self).__init__(*args, **kwargs)
@@ -32,45 +33,27 @@ class grep(Command):
             self._regex = re.compile(self._args['regex'])
         except:
             self.stop_with_error(sys.exc_info()[1], 1)
-        self._files = resolve(self._args['f'] or [])
-        self._active_file = None
-        self._pos = 0
-        self._print_names = len(self._files) > 1
+        self._iread = InputReader(self, resolve(self._args['f'] or []))
 
     @property
     def is_ready(self):
         try:
-            return self._files or self.is_input_piped
-        except AttributeError: 
+            return self._iread.is_ready
+        except AttributeError:
             return False
 
     def generator_step(self):
-        if not self.is_input_piped and not self._active_file:
-            if self._pos >= len(self._files):
-                self.stop()
-            else:
-                pos = self._pos
-                self._pos += 1
-                try:
-                    self._active_file = open(self._files[pos])
-                except:
-                    self.ret = 1
-                    return ErrString(sys.exc_info()[1])
         while True:
             try:
-                if self.is_input_piped:
-                    line = self._inp.__next__(from_out=True).strip('\n')
-                else:
-                    line = self._active_file.__next__().strip('\n')
+                line = self._iread.get_next_line()
                 if self._regex.search(line):
-                    if self._print_names:
-                        return OutString('%s: %s' % (self._files[self._pos-1], line))
+                    if not self._iread.is_ipipe and len(self._iread.files) > 1:
+                        return OutString('%s: %s' % 
+                                (self._iread.curr_file_name, line))
                     else:
                         return OutString(line)
             except StopIteration:
-                if self._active_file:
-                    self._active_file.close()
-                    self._active_file = None
-                    return self.generator_step()
-                else:
-                    self.stop()
+                self.stop()
+            except:
+                self.ret = 1
+                return ErrString(sys.exc_info()[1])
