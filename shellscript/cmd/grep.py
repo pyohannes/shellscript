@@ -3,10 +3,10 @@ import sys
 import re
 
 from shellscript.proto import Command, OutString, ErrString, resolve
-from shellscript.util import InputReader
+from shellscript.util import InputReaderMixin
 
 
-class grep(Command):
+class grep(Command, InputReaderMixin):
     """Print lines matching a pattern.
 
     *grep* searches given input files for lines matching the given regular 
@@ -33,23 +33,16 @@ class grep(Command):
             self._regex = re.compile(self._args['regex'])
         except:
             self.stop_with_error(sys.exc_info()[1], 1)
-        self._iread = InputReader(self, resolve(self._args['f'] or []))
+        self.initialize_input(resolve(self._args['f'] or []))
 
-    @property
-    def is_ready(self):
-        try:
-            return self._iread.is_ready
-        except AttributeError:
-            return False
-
-    def generator_step(self):
+    def work(self):
         while True:
             try:
-                line = self._iread.get_next_line()
+                line = self.get_input_line()
                 if self._regex.search(line):
-                    if not self._iread.is_ipipe and len(self._iread.files) > 1:
+                    if not self.is_ipipe and self.len_input_files > 1:
                         return OutString('%s: %s' % 
-                                (self._iread.curr_file_name, line))
+                                (self.curr_input_file_name, line))
                     else:
                         return OutString(line)
             except StopIteration:

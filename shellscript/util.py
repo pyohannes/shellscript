@@ -1,45 +1,45 @@
 from .proto import OutString, ErrString, ProtocolError
 
 
-class InputReader(object):
+class InputReaderMixin(object):
     """
     """
 
-    def __init__(self, obj, files):
-        self._obj = obj
-        self.files = files
-        self._active_file = None
-        self._pos = -1
+    def initialize_input(self, files):
+        self._input_files = files
+        self._active_input_file = None
+        self._input_files_pos = -1
 
     @property
-    def curr_file_name(self):
+    def curr_input_file_name(self):
         if self.is_ipipe:
             return '<input>'
         else:
-            return self.files[self._pos]
+            return self._input_files[self._input_files_pos]
+
+    @property
+    def len_input_files(self):
+        return len(self._input_files)
 
     @property
     def is_ready(self):
-        return len(self.files) or self.is_ipipe
+        mixinready = len(self._input_files) or self.is_ipipe
+        return mixinready and super(self, InputReaderMixin).is_ready
 
-    @property
-    def is_ipipe(self):
-        return self._obj.is_input_piped
-
-    def get_next_line(self):
+    def get_input_line(self):
         if self.is_ipipe:
-            return self._obj._inp.__next__(from_out=True).strip('\n')
+            return self._inp.get_line().strip('\n')
 
-        if not self._active_file:
-            self._pos += 1
-            if self._pos >= len(self.files):
+        if not self._active_input_file:
+            self._input_files_pos += 1
+            if self._input_files_pos >= len(self._input_files):
                 raise StopIteration
             else:
-                self._active_file = open(self.files[self._pos])
+                self._active_input_file = open(self._input_files[self._input_files_pos])
         try:
-            return self._active_file.__next__().strip('\n')
+            return self._active_input_file.__next__().strip('\n')
         except StopIteration:
-            self._active_file.close()
-            self._active_file = None
-            return self.get_next_line()
+            self._active_input_file.close()
+            self._active_input_file = None
+            return self.get_input_line()
 

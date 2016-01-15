@@ -12,6 +12,6 @@ class pwd(Command):
         shellscript.proto.OutString: The current working directory.
     """
 
-    def generator_step(self):
+    def work(self):
         self.buffer_return(OutString(os.getcwd()))
         self.stop()

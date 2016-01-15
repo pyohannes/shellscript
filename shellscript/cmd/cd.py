@@ -18,7 +18,7 @@ class cd(Command):
         self._path = resolve(path)
         super(cd, self).__init__(*args, **kwargs)
 
-    def generator_step(self):
+    def work(self):
         if isinstance(self._path, list) and self._path:
             self._path = self._path[0]
         if not self._path:

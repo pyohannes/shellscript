@@ -2,10 +2,10 @@ import os
 import sys
 
 from shellscript.proto import Command, OutString, ErrString, resolve
-from shellscript.util import InputReader
+from shellscript.util import InputReaderMixin
 
 
-class cat(Command):
+class cat(Command, InputReaderMixin):
     """Concatenate and print files.
 
     ret is set to 0 on success and to 1 on failure.
@@ -23,11 +23,11 @@ class cat(Command):
         super(cat, self).__init__(*args, **kwargs)
 
     def initialize(self):
-        self._iread = InputReader(self, resolve(self._args['f'] or []))
+        self.initialize_input(resolve(self._args['f'] or []))
 
-    def generator_step(self):
+    def work(self):
         try:
-            return OutString(self._iread.get_next_line())
+            return OutString(self.get_input_line())
         except StopIteration:
             self.stop()
         except:
