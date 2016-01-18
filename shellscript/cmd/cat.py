@@ -1,8 +1,8 @@
 import os
 import sys
 
-from shellscript.proto import Command, OutString, ErrString, resolve
-from shellscript.util import InputReaderMixin
+from shellscript.proto import Command, OutString, ErrString, resolve, \
+                              InputReaderMixin
 
 
 class cat(Command, InputReaderMixin):
@@ -23,6 +23,7 @@ class cat(Command, InputReaderMixin):
         super(cat, self).__init__(*args, **kwargs)
 
     def initialize(self):
+        super(cat, self).initialize()
         self.initialize_input(resolve(self._args['f'] or []))
 
     def work(self):

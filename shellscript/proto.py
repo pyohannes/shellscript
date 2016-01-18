@@ -43,7 +43,149 @@ class ErrString(str):
     pass
 
 
-class Command(object):
+class InputReaderMixin(object):
+    """
+    """
+
+    def initialize_input(self, files):
+        self._input_files = files
+        self._active_input_file = None
+        self._input_files_pos = -1
+
+    @property
+    def curr_input_file_name(self):
+        if self.is_ipipe:
+            return '<input>'
+        else:
+            return self._input_files[self._input_files_pos]
+
+    @property
+    def len_input_files(self):
+        return len(self._input_files)
+
+    @property
+    def is_ready(self):
+        mixinready = len(self._input_files) or self.is_ipipe
+        return mixinready and super(self, InputReaderMixin).is_ready
+
+    def get_input_line(self):
+        if self.is_ipipe:
+            return self._inp.get_line().strip('\n')
+
+        if not self._active_input_file:
+            self._input_files_pos += 1
+            if self._input_files_pos >= len(self._input_files):
+                raise StopIteration
+            else:
+                self._active_input_file = open(self._input_files[self._input_files_pos])
+        try:
+            return self._active_input_file.__next__().strip('\n')
+        except StopIteration:
+            self._active_input_file.close()
+            self._active_input_file = None
+            return self.get_input_line()
+
+
+class OutputWriterMixin(object):
+
+    class Writer(object):
+
+        def __init__(self, obj):
+            self._target = obj
+
+        def close(self):
+            pass
+
+
+    class StreamWriter(Writer):
+
+        @staticmethod
+        def check(o):
+            return o in (dev.out, dev.err)
+
+        def __init__(self, obj):
+            if obj == dev.out:
+                self._target = sys.stdout
+            elif obj == dev.err:
+                self._target = sys.stderr
+
+        def write(self, l):
+            self._target.write('%s\n' % l)
+
+
+    class FileWriter(Writer):
+
+        @staticmethod
+        def check(o):
+            return hasattr(o, 'write') and hasattr(o, 'tell')
+
+        def write(self, l):
+            self._target.write('%s%s' % ( '\n' if self._target.tell() else '', 
+                l ))
+
+
+    class ListWriter(Writer):
+
+        @staticmethod
+        def check(o):
+            return hasattr(o, 'append')
+
+        def write(self, l):
+            self._target.append(l)
+
+
+    class FilenameWriter(FileWriter):
+
+        @staticmethod
+        def check(o):
+            return isinstance(o, str)
+
+        def __init__(self, fn):
+            self._f = open(fn, 'w')
+
+        def close(self):
+            self._f.close()
+
+    class NullWriter(Writer):
+
+        @staticmethod
+        def check(o):
+            return o == dev.nul
+
+        def write(self, l):
+            pass
+
+
+    def make_writer(self, obj, streamname):
+        for c in (self.StreamWriter, self.FileWriter, self.ListWriter, 
+                self.FilenameWriter, self.NullWriter):
+            if c.check(obj):
+                return c(obj)
+        self.buffer_return("'%s' is not a valid argument for %s" % (obj,
+            streamname))
+        return self.NullWriter(None) 
+
+
+    def initialize(self):
+        self._outwriter = self._errwriter = None
+        if not self.is_epipe and not self.is_eiter:
+            self._errwriter = self.make_writer(self._err, 'err')
+        if not self.is_opipe and not self.is_oiter:
+            self._outwriter = self.make_writer(self._out, 'out')
+
+    def finalize(self):
+        for w in (self._errwriter, self._outwriter):
+            if w:
+                w.close()
+
+    def write_error(self, l):
+        self._errwriter.write(l)
+
+    def write_output(self, l):
+        self._outwriter.write(l)
+
+
+class Command(OutputWriterMixin):
 
     def __init__(self, out=None, err=None, outerr=None):
         if outerr is not None:
@@ -72,7 +214,7 @@ class Command(object):
     # for derived classes
 
     def initialize(self):
-        pass
+        super(Command, self).initialize()
 
     def work(self):
         pass
@@ -103,6 +245,18 @@ class Command(object):
         return isinstance(self._out, Command)
 
     @property
+    def is_epipe(self):
+        """
+        Checks if the error output of this *Command* is piped into another 
+        *Command*.
+
+        Return:
+            bool: True if the error output of this *Command* is input for 
+            another *Command*.
+        """
+        return isinstance(self._err, Command)
+
+    @property
     def is_ipipe(self):
         """
         Checks if the input of this *Command* is piped from another *Command*.
@@ -121,30 +275,44 @@ class Command(object):
         return True
 
     @property
-    def is_iter(self):
+    def is_oiter(self):
         if self.is_opipe:
-            return self._out.is_iter
+            return self._out.is_oiter
         else:
-            return dev.itr in (self._out, self._err)
+            return self._out == dev.itr
+
+    @property
+    def is_eiter(self):
+            return self._err == dev.itr
 
     def get_line(self):
-        if self._buffer:
-            ret = self._buffer[0]
-            del self._buffer[0]
-            return ret
-        if self._stop:
-            #shellscript.settings.set_lastreturn(self._returncode)
-            raise StopIteration
-        try:
-            return self.work() or OutString('')
-        except StopIteration:
-            self._stop = True
-            return self.get_line()
+        ret = None
+        while True:
+            if self._buffer:
+                ret = self._buffer[0]
+                del self._buffer[0]
+            elif self._stop:
+                #shellscript.settings.set_lastreturn(self._returncode)
+                raise StopIteration
+            else:
+                try:
+                    ret = self.work() or OutString('')
+                except StopIteration:
+                    self._stop = True
+                    continue
+            if ret is None:
+                continue
+            elif isinstance(ret, ErrString) and not self.is_epipe \
+                    and not self.is_eiter:
+                self.write_error(ret)
+            else:
+                break
+        return ret
 
     def interact_attempt(self):
         if not self.is_ready:
             return
-        elif self.is_iter:
+        elif self.is_oiter or self.is_eiter:
             return
         elif self.is_opipe and self._out.is_ready:
             self._out.interact_attempt()
@@ -165,25 +333,11 @@ class Command(object):
             except StopIteration: pass
 
     def _interact(self):
-        def make_writer(target):
-            if target == dev.out:
-                return lambda s: sys.stdout.write('%s\n' % s)
-            elif target == dev.err:
-                return lambda s: sys.stderr.write('%s\n' % s)
-            elif hasattr(target, 'write') and hasattr(target, 'tell'):
-                return lambda s: target.write('%s%s' % (
-                    '\n' if target.tell() else '', s))
-            elif hasattr(target, 'append'):
-                return lambda s: target.append(s)
-            else:
-                return lambda s: None
-        outwriter = make_writer(self._out)
-        errwriter = make_writer(self._err)
         for l in self:
             if isinstance(l, OutString):
-                outwriter(l)
+                self.write_output(l)
             elif isinstance(l, ErrString):
-                errwriter(l)
+                self.write_error(l)
             else:
                 raise ProtocolError("Not an OutString or ErrString: '%s'" % l)
 
