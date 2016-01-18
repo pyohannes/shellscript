@@ -2,8 +2,8 @@ import os
 import sys
 import re
 
-from shellscript.proto import Command, OutString, ErrString, resolve
-from shellscript.util import InputReaderMixin
+from shellscript.proto import Command, OutString, ErrString, resolve, \
+                              InputReaderMixin
 
 
 class grep(Command, InputReaderMixin):
@@ -29,6 +29,7 @@ class grep(Command, InputReaderMixin):
         super(grep, self).__init__(*args, **kwargs)
 
     def initialize(self):
+        super(grep, self).initialize()
         try:
             self._regex = re.compile(self._args['regex'])
         except:
