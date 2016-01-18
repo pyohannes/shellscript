@@ -84,23 +84,29 @@ def test_redirection(tmpdir):
     # 2. Every command constructor excepts the arguments *out*, *err* and 
     #    *outerr*.
     for num, (command, kwargs) in enumerate(_get_all_commands_and_input(tmpdir)):
+        def _read_file(fname):
+            with open(fname, 'r') as f:
+                file_content = f.read()
+                if file_content:
+                    return file_content.split('\n')
+                else:
+                    return []
         # file
-        fname = tmpdir.mkdir('test_%d' % num).join('out.txt').strpath
+        fname = tmpdir.join('test_%d_out_fobj.txt' % num).strpath
         with open(fname, 'w') as f:
             c = command(out=f, **kwargs) 
-        with open(fname, 'r') as f:
-            file_content = f.read()
-            if file_content:
-                file_content = file_content.split('\n')
-            else:
-                file_content = []
+        fobj_content = _read_file(fname)
         # iter
         c = command(out=dev.itr, **kwargs) 
         iter_content = list(c)
         # list
         list_content = []
         c = command(out=list_content, **kwargs) 
-        assert file_content == iter_content == list_content
+        # file as string
+        fname = tmpdir.join('test_%d_out_fname.txt' % num).strpath
+        c = command(out=fname, **kwargs)
+        fname_content = _read_file(fname)
+        assert fobj_content == iter_content == list_content == fname_content
 
 
 def test_invalid_output(tmpdir):

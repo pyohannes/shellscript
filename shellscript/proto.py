@@ -141,10 +141,10 @@ class OutputWriterMixin(object):
             return isinstance(o, str)
 
         def __init__(self, fn):
-            self._f = open(fn, 'w')
+            self._target = open(fn, 'w')
 
         def close(self):
-            self._f.close()
+            self._target.close()
 
     class NullWriter(Writer):
 
@@ -161,9 +161,8 @@ class OutputWriterMixin(object):
                 self.FilenameWriter, self.NullWriter):
             if c.check(obj):
                 return c(obj)
-        self.buffer_return("'%s' is not a valid argument for %s" % (obj,
+        raise ProtocolError("'%s' is not a valid argument for %s" % (obj,
             streamname))
-        return self.NullWriter(None) 
 
 
     def initialize(self):
@@ -193,6 +192,9 @@ class Command(OutputWriterMixin):
         else:
             self._out = dev.out if out is None else out
             self._err = dev.err if err is None else err
+        if self.is_opipe and self.is_epipe and self._out != self._err:
+            raise ProtocolError('Invalid pipe: err pipe cannot differ from ' \
+                    'out pipe.')
         if self.is_opipe:
             self._out._inp = self
         self._global_initialize()
@@ -215,6 +217,9 @@ class Command(OutputWriterMixin):
 
     def initialize(self):
         super(Command, self).initialize()
+
+    def finalize(self):
+        super(Command, self).finalize()
 
     def work(self):
         pass
@@ -289,10 +294,10 @@ class Command(OutputWriterMixin):
         ret = None
         while True:
             if self._buffer:
-                ret = self._buffer[0]
-                del self._buffer[0]
+                ret = self._buffer.pop()
             elif self._stop:
-                #shellscript.settings.set_lastreturn(self._returncode)
+                globals()['ret'] = self.ret
+                self.finalize()
                 raise StopIteration
             else:
                 try:
