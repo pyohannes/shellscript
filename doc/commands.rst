@@ -71,12 +71,19 @@ Protocol API
 
 .. automodule:: shellscript.proto
 
-.. automodule:: shellscript.util
 
 Commands
 --------
 
+.. automodule:: shellscript.cmd.cat
+
 .. automodule:: shellscript.cmd.cd
+
+.. automodule:: shellscript.cmd.grep
+
+.. automodule:: shellscript.cmd.ls
+
+.. automodule:: shellscript.cmd.pwd
 
 
 Indices and tables
