@@ -355,6 +355,8 @@ def resolve(arg):
            arg.sort()
         else:
             arg = [ arg ]
+    elif hasattr(arg, '__next__'):
+        arg = list(arg)
     return arg
 
 
