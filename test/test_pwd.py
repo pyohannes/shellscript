@@ -5,7 +5,7 @@ from util import original_env
 
 
 def valid_input(tmpdir):
-    yield {}
+    yield [], {}
 
 
 def invalid_input(tmpdir):

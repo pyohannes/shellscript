@@ -5,18 +5,18 @@ from shellscript import ls, dev
 def valid_input(tmpdir):
 
     d = tmpdir.mkdir('test_ls')
-    yield dict(f=d.strpath)
+    yield [], dict(f=d.strpath)
 
     f = d.join('test_ls_1')
     f.write('')
-    yield dict(f=f.strpath)
+    yield [], dict(f=f.strpath)
 
-    yield dict(f=os.path.join(d.strpath, '*'))
+    yield [], dict(f=os.path.join(d.strpath, '*'))
 
 
 def invalid_input(tmpdir):
 
-    yield dict(f=os.path.join(tmpdir.strpath, 'invalid'))
+    yield [], dict(f=os.path.join(tmpdir.strpath, 'invalid'))
 
 
 def test_empty(tmpdir):

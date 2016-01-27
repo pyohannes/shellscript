@@ -13,8 +13,8 @@ def _get_test_module_for_command(command):
 def _get_all_commands_and_input(tmpdir, inputfunc='valid_input'):
     for command in shellscript.get_all_commands():
         testmod = _get_test_module_for_command(command)
-        for kwargs in getattr(testmod, inputfunc)(tmpdir):
-            yield command, kwargs
+        for args, kwargs in getattr(testmod, inputfunc)(tmpdir):
+            yield command, args, kwargs
 
 
 def assert_proper_out(out):
@@ -25,7 +25,7 @@ def assert_proper_out(out):
 
 def test_call(tmpdir):
     # 1. Every command is a Python class.
-    for command, _ in _get_all_commands_and_input(tmpdir):
+    for command, _, _ in _get_all_commands_and_input(tmpdir):
         command()
 
     
@@ -34,7 +34,7 @@ def test_valid(tmpdir):
     #    *outerr*.
     # 7. Every command instance has a ret attribute.
     fname = tmpdir.mkdir('test').join('out.txt').strpath
-    for command, kwargs in _get_all_commands_and_input(tmpdir):
+    for command, args, kwargs in _get_all_commands_and_input(tmpdir):
         l = []
         with open(fname, 'w') as f:
             for out in (dev.out, dev.err, dev.itr, dev.nul, f, l):
@@ -53,8 +53,8 @@ def test_invalid(tmpdir):
     # 6. A command must not raise an exception
     # 7. Every command instance has a ret attribute.
     # 8. On error every command generator must yield an ErrString.
-    for command, kwargs in _get_all_commands_and_input(tmpdir, 'invalid_input'):
-        c = command(err=dev.itr, **kwargs)
+    for command, args, kwargs in _get_all_commands_and_input(tmpdir, 'invalid_input'):
+        c = command(*args, err=dev.itr, **kwargs)
         out = list(c)
         assert c.ret != 0
         assert [ l for l in out if isinstance(l, ErrString) ]
@@ -64,15 +64,15 @@ def test_output(tmpdir):
     # 4. Every command instance is a generator that yields strings.
     # 5. Every string yielded by a command is an instance of OutString or
     #    ErrString.
-    for command, kwargs in _get_all_commands_and_input(tmpdir):
-        c = command(**kwargs)
+    for command, args, kwargs in _get_all_commands_and_input(tmpdir):
+        c = command(*args, **kwargs)
         assert_proper_out(c)
 
 
 def test_generator(tmpdir):
     # 4. Every command instance is a generator that yields strings.
-    for command, kwargs in _get_all_commands_and_input(tmpdir, 'invalid_input'):
-        c = command(**kwargs)
+    for command, args, kwargs in _get_all_commands_and_input(tmpdir, 'invalid_input'):
+        c = command(*args, **kwargs)
         out1 = list(c)
         assert_proper_out(out1)
         out2 = list(c)
@@ -83,7 +83,7 @@ def test_generator(tmpdir):
 def test_redirection(tmpdir):
     # 2. Every command constructor excepts the arguments *out*, *err* and 
     #    *outerr*.
-    for num, (command, kwargs) in enumerate(_get_all_commands_and_input(tmpdir)):
+    for num, (command, args, kwargs) in enumerate(_get_all_commands_and_input(tmpdir)):
         def _read_file(fname):
             with open(fname, 'r') as f:
                 file_content = f.read()
@@ -94,7 +94,7 @@ def test_redirection(tmpdir):
         # file
         fname = tmpdir.join('test_%d_out_fobj.txt' % num).strpath
         with open(fname, 'w') as f:
-            c = command(out=f, **kwargs) 
+            c = command(*args, out=f, **kwargs) 
         fobj_content = _read_file(fname)
         # iter
         c = command(out=dev.itr, **kwargs) 
@@ -112,12 +112,12 @@ def test_redirection(tmpdir):
 def test_invalid_output(tmpdir):
     # 2. Every command constructor excepts the arguments *out*, *err* and 
     #    *outerr*.
-    for command, kwargs in _get_all_commands_and_input(tmpdir):
+    for command, args, kwargs in _get_all_commands_and_input(tmpdir):
         for arg in ('out', 'err', 'outerr'):
-            args = kwargs.copy()
-            args[arg] = 3
+            kwargs = kwargs.copy()
+            kwargs[arg] = 3
             try:
-                c = command(**kwargs) 
+                c = command(*args, **kwargs) 
                 assert False
             except:
                 pass

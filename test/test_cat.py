@@ -6,15 +6,15 @@ def valid_input(tmpdir):
 
     f = tmpdir.join('test_cat1')
     f.write('ab\ncd\n')
-    yield dict(f=f.strpath)
+    yield [], dict(f=f.strpath)
 
-    yield dict(f=__file__)
+    yield [], dict(f=__file__)
 
-    yield dict(f=[__file__, f.strpath])
+    yield [], dict(f=[__file__, f.strpath])
 
 
 def invalid_input(tmpdir):
-    yield dict(f=tmpdir.strpath)
+    yield [], dict(f=tmpdir.strpath)
 
 
 def test_simple_from_file(tmpdir):
