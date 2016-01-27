@@ -10,6 +10,8 @@ def valid_input(tmpdir):
 
     yield dict(f=__file__)
 
+    yield dict(f=[__file__, f.strpath])
+
 
 def invalid_input(tmpdir):
     yield dict(f=tmpdir.strpath)
@@ -21,6 +23,15 @@ def test_simple_from_file(tmpdir):
     f.write('\n'.join(text))
     cmd = cat(f.strpath, out=dev.itr)
     assert list(cmd) == text
+
+
+def test_multiple_files(tmpdir):
+    text = set([ 'ab', 'cd', 'ef', 'gh' ])
+    for t in text:
+        f = tmpdir.join(t)
+        f.write(t)
+    cmd = cat(f=[ os.path.join(tmpdir.strpath, n) for n in text], out=dev.itr)
+    assert set(list(cmd)) == text
 
 
 def test_glob_from_file(tmpdir):

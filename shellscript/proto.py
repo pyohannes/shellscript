@@ -197,6 +197,7 @@ class Command(OutputWriterMixin):
                     'out pipe.')
         if self.is_opipe:
             self._out._inp = self
+        self.ret = None
         self._global_initialize()
         self.interact_attempt()
 
@@ -211,11 +212,18 @@ class Command(OutputWriterMixin):
             return self.get_line()
 
     def __repr__(self):
-        return ''
+        r = '<%s return=%s ' % (self.__class__.__name__, str(self.ret))
+        if self.is_opipe:
+            r += repr(self._out)
+        r += '>'
+        return r
 
     # for derived classes
 
     def initialize(self):
+        self.ret = 0
+        self._buffer = []
+        self._stop = False
         super(Command, self).initialize()
 
     def finalize(self):
@@ -327,11 +335,10 @@ class Command(OutputWriterMixin):
     # for internal usage
 
     def _global_initialize(self):
-        self.ret = 0
-        self._buffer = []
-        self._stop = False
         try:
             self.initialize()
+            if self.is_opipe:
+                self._out.initialize()
         except StopIteration:
             try:
                 self.stop()
