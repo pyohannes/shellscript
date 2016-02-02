@@ -244,6 +244,12 @@ class Command(OutputWriterMixin):
     def buffer_return(self, value):
         self._buffer.insert(0, value)
 
+    def buffer_pop(self):
+        if self._buffer:
+            return self._buffer.pop()
+        else:
+            return None
+
     # for interaction amongst commands
 
     @property
@@ -299,20 +305,19 @@ class Command(OutputWriterMixin):
             return self._err == dev.itr
 
     def get_line(self):
-        ret = None
         while True:
-            if self._buffer:
-                ret = self._buffer.pop()
-            elif self._stop:
-                globals()['ret'] = self.ret
-                self.finalize()
-                raise StopIteration
-            else:
-                try:
-                    ret = self.work() or OutString('')
-                except StopIteration:
-                    self._stop = True
-                    continue
+            ret = self.buffer_pop()
+            if not ret:
+                if self._stop:
+                    globals()['ret'] = self.ret
+                    self.finalize()
+                    raise StopIteration
+                else:
+                    try:
+                        ret = self.work() or OutString('')
+                    except StopIteration:
+                        self._stop = True
+                        continue
             if ret is None:
                 continue
             elif isinstance(ret, ErrString) and not self.is_epipe \

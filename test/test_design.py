@@ -38,13 +38,13 @@ def test_valid(tmpdir):
         l = []
         with open(fname, 'w') as f:
             for out in (dev.out, dev.err, dev.itr, dev.nul, f, l):
-                c = command(out=out, **kwargs) 
+                c = command(*args, out=out, **kwargs) 
                 list(c)
                 assert c.ret == 0 
-                c = command(err=out, **kwargs) 
+                c = command(*args, err=out, **kwargs) 
                 list(c)
                 assert c.ret == 0 
-                c = command(outerr=out, **kwargs) 
+                c = command(*args, outerr=out, **kwargs) 
                 list(c)
                 assert c.ret == 0 
 

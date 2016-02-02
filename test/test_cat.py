@@ -3,6 +3,7 @@ from shellscript import cat, dev
 
 
 def valid_input(tmpdir):
+    return []
 
     f = tmpdir.join('test_cat1')
     f.write('ab\ncd\n')
