@@ -65,7 +65,7 @@ class run(Command, InputReaderMixin):
             try:
                 index = buf.index('\n')
                 ret.append(''.join(buf[:index]))
-                buf = buf[index+1:]
+                buf[:] = buf[index+1:]
             except:
                 break
         if finished:
