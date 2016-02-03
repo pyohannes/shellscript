@@ -10,7 +10,7 @@ def alias(cmd, *alias_args, **alias_kwargs):
         *shellscript.Command*: A function that initializes a command.
     """
     def _cmd(*args, **kwargs):
-        args = args + alias_args
+        args = alias_args + args
         kwargs.update(alias_kwargs)
         return cmd(*args, **kwargs)
     return _cmd
