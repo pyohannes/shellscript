@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 from shellscript.proto import Command, OutString, ErrString, resolve, \
-                              InputReaderMixin
+                              InputReaderMixin, dev
 
 
 class run(Command, InputReaderMixin):
@@ -27,29 +27,39 @@ class run(Command, InputReaderMixin):
     def initialize(self):
         super(run, self).initialize()
         self.initialize_input([])
+        self._terminal_use = (self._out == dev.out and self._err == dev.err)
         try:
-            cmd = [ self._args['cmd'] ]
+            cmdlist = [ self._args['cmd'] ]
             for arg in self._args['args']:
-                cmd.extend(resolve(arg))
-            self._proc = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    stdin=subprocess.PIPE)
+                cmdlist.extend(resolve(arg))
+            if self._terminal_use:
+                self._initialize_terminal(cmdlist)
+            else:
+                self._initialize_redirection(cmdlist)
         except:
             self.stop_with_error(sys.exc_info()[1], 1)
+
+    def _initialize_terminal(self, cmdlist):
+        self._proc = subprocess.Popen(cmdlist)
+
+    def _initialize_redirection(self, cmdlist):
+        self._proc = subprocess.Popen(
+                cmdlist,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE)
         self._stdout_buf = []
         self._stderr_buf = []
-
 
     def finalize(self):
         super(run, self).finalize()
         try:
             self._proc.wait()
             self.ret = self._proc.returncode
-            self._proc.stdout.close()
-            self._proc.stderr.close()
-            self._proc.stdin.close()
+            if not self._terminal_use:
+                self._proc.stdout.close()
+                self._proc.stderr.close()
+                self._proc.stdin.close()
         except: pass
 
     def _query_stream(self, stream, buf, finished=False):
@@ -74,6 +84,10 @@ class run(Command, InputReaderMixin):
         return ret
 
     def work(self):
+        if self._terminal_use:
+            _, __ = self._proc.communicate()
+            self.ret = self._proc.returncode
+            self.stop()
         stdin_active = True
         try:
             while True:

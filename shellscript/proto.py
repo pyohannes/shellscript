@@ -350,13 +350,19 @@ class Command(OutputWriterMixin):
             except StopIteration: pass
 
     def _interact(self):
-        for l in self:
-            if isinstance(l, OutString):
-                self.write_output(l)
-            elif isinstance(l, ErrString):
-                self.write_error(l)
-            else:
-                raise ProtocolError("Not an OutString or ErrString: '%s'" % l)
+        # avoid calling __iter__ - this would cause an call to initialize again
+        while True:
+            try:
+                l = self.__next__()
+                if isinstance(l, OutString):
+                    self.write_output(l)
+                elif isinstance(l, ErrString):
+                    self.write_error(l)
+                else:
+                    raise ProtocolError(
+                            "Not an OutString or ErrString: '%s'" % l)
+            except StopIteration:
+                break
 
 
 def resolve(arg):

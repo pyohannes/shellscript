@@ -27,3 +27,12 @@ def test_stdout_stderr(tmpdir):
     cmd = run(sys.executable, '-c', script, out=out, err=err)
     assert out == [ 'ab' ]
     assert err == [ 'cd' ]
+
+
+def test_stdout_delay(tmpdir):
+    script = [ 'import sys, time ; ' + \
+               'sys.stdout.write("ab\\ncd\\nef") ; ' + \
+               'time.sleep(5)'
+             ]
+    cmd = run(sys.executable, '-c', script, out=dev.itr)
+    assert list(cmd) == [ 'ab', 'cd', 'ef' ]
