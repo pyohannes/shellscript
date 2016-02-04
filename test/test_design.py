@@ -106,7 +106,13 @@ def test_redirection(tmpdir):
         fname = tmpdir.join('test_%d_out_fname.txt' % num).strpath
         c = command(out=fname, **kwargs)
         fname_content = _read_file(fname)
-        assert fobj_content == iter_content == list_content == fname_content
+        # default redirection
+        fname_def = tmpdir.join('test_%d_out_fname_def.txt' % num).strpath
+        shellscript.settings.default_out = fname_def
+        c = command(**kwargs)
+        fname_def_content = _read_file(fname_def)
+        assert fobj_content == iter_content == list_content == fname_content \
+                == fname_def_content
 
 
 def test_invalid_output(tmpdir):

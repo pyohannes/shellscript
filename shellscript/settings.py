@@ -43,3 +43,6 @@ def _default_prompt(postfix):
 
 prompt_1 = _default_prompt('>>> ')
 prompt_2 = _default_prompt('... ')
+
+default_out = 1
+default_err = 2

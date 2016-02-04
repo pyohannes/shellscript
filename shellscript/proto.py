@@ -3,6 +3,8 @@ import sys
 import glob
 import string
 
+import shellscript.settings as settings
+
 
 class ProtocolError(Exception):
     pass
@@ -190,8 +192,8 @@ class Command(OutputWriterMixin):
         if outerr is not None:
             self._out = self._err = outerr
         else:
-            self._out = dev.out if out is None else out
-            self._err = dev.err if err is None else err
+            self._out = settings.default_out if out is None else out
+            self._err = settings.default_err if err is None else err
         if self.is_opipe and self.is_epipe and self._out != self._err:
             raise ProtocolError('Invalid pipe: err pipe cannot differ from ' \
                     'out pipe.')
