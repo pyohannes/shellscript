@@ -64,3 +64,13 @@ def test_point(tmpdir):
 def test_pointpoint(tmpdir):
     parent = os.path.dirname(os.getcwd())
     assert list(ls(parent, out=dev.itr)) == list(ls(f='..', out=dev.itr))
+
+
+def test_indicator_slash(tmpdir):
+    content = [ 'ab/', 'cd.txt', 'ef/', 'gh.txt' ]
+    tmpdir.join('cd.txt').write('cd.txt')
+    tmpdir.join('gh.txt').write('gh.txt')
+    tmpdir.mkdir('ab')
+    tmpdir.mkdir('ef')
+    cmd = ls(tmpdir.strpath, indicator_slash=True, out=dev.itr)
+    assert list(cmd) == content
