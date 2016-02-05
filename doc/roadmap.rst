@@ -77,6 +77,18 @@ mv
 -v
 -Z
 
+rm
+--
+-f
+-i
+-I
+--interactive
+--one-file-system
+--no-preserve-root
+--preserve-root
+-r
+-d
+-v
 sleep
 -----
 
