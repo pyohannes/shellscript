@@ -56,6 +56,8 @@ def test_invalid(tmpdir):
     for command, args, kwargs in _get_all_commands_and_input(tmpdir, 'invalid_input'):
         c = command(*args, err=dev.itr, **kwargs)
         out = list(c)
+        print(command, args, kwargs)
+        print('\n'.join(out))
         assert c.ret != 0
         assert [ l for l in out if isinstance(l, ErrString) ]
 
