@@ -375,8 +375,13 @@ def resolve(arg):
            arg.sort()
         else:
             arg = [ arg ]
-    elif hasattr(arg, '__next__'):
-        arg = list(arg)
+    else:
+        try:
+            exp = []
+            for a in arg:
+                exp.extend(resolve(a))
+            arg = exp
+        except TypeError: pass
     return arg
 
 

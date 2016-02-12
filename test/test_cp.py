@@ -17,13 +17,13 @@ def invalid_input(tmpdir):
 
     f_existing = tmpdir.join('existing')
     f_existing.write('xy')
-    yield [], dict(src=f_existing)
+    yield [], dict(src=f_existing.strpath)
 
-    yield [], dict(dst=f_existing)
+    yield [], dict(dst=f_existing.strpath)
 
     # dir as src without recurse
     d_src = tmpdir.mkdir(_make_unique_name(tmpdir))
-    d_tgt = os.path.join(tmpdir, _make_unique_name(tmpdir))
+    d_tgt = os.path.join(tmpdir.strpath, _make_unique_name(tmpdir))
     yield [], dict(src=d_src.strpath, dst=d_tgt)
 
 
@@ -61,8 +61,8 @@ def _dir_equals(d1, d2):
     if not sorted(d1_c) == sorted(d2_c):
         return False
     for entry in d1_c:
-        e1_name = os.path.join(d1, d1_c)
-        e2_name = os.path.join(d2, d1_c)
+        e1_name = os.path.join(d1, entry)
+        e2_name = os.path.join(d2, entry)
         if os.path.isfile(e1_name) and os.path.isfile(e2_name):
             # file compare
             if not _file_equals(e1_name, e2_name):
@@ -147,12 +147,34 @@ def test_arg_dst_dir(tmpdir):
 
 
 def test_arg_dst_list(tmpdir):
-    assert False
+    srcdir1 = tmpdir.mkdir(_make_unique_name(tmpdir))
+    src, txt = _make_test_textfile(srcdir1)
+    tgtdir1 = tmpdir.mkdir(_make_unique_name(tmpdir))
+    tgtdir2 = tmpdir.mkdir(_make_unique_name(tmpdir))
+    cmd = cp(src, [tgtdir1.strpath, tgtdir2.strpath])
+    assert _dir_equals(tgtdir1.strpath, srcdir1.strpath)
+    assert _dir_equals(tgtdir2.strpath, srcdir1.strpath)
 
 
 def test_arg_dst_wildcard(tmpdir):
-    assert False
+    srcdir = tmpdir.mkdir(_make_unique_name(tmpdir))
+    src, txt = _make_test_textfile(srcdir)
+    tgtdir_parent = tmpdir.mkdir(_make_unique_name(tmpdir))
+    tgtdir = tgtdir_parent.mkdir(_make_unique_name(tgtdir_parent))
+    cmd = cp(src, os.path.join(tgtdir_parent.strpath, '*'))
+    assert _dir_equals(srcdir.strpath, tgtdir.strpath)
 
 
 def test_arg_dst_wildcardlist(tmpdir):
-    assert False
+    srcdir = tmpdir.mkdir(_make_unique_name(tmpdir))
+    src, txt = _make_test_textfile(srcdir)
+    tgtdir_parent1 = tmpdir.mkdir(_make_unique_name(tmpdir))
+    tgtdir1 = tgtdir_parent1.mkdir(_make_unique_name(tgtdir_parent1))
+    tgtdir_parent2 = tmpdir.mkdir(_make_unique_name(tmpdir))
+    tgtdir2 = tgtdir_parent2.mkdir(_make_unique_name(tgtdir_parent2))
+    cmd = cp(
+            src, 
+            [ os.path.join(tgtdir_parent1.strpath, '*'),
+              os.path.join(tgtdir_parent2.strpath, '*') ])
+    assert _dir_equals(srcdir.strpath, tgtdir1.strpath)
+    assert _dir_equals(srcdir.strpath, tgtdir2.strpath)
