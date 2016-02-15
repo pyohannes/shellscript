@@ -178,3 +178,18 @@ def test_arg_dst_wildcardlist(tmpdir):
               os.path.join(tgtdir_parent2.strpath, '*') ])
     assert _dir_equals(srcdir.strpath, tgtdir1.strpath)
     assert _dir_equals(srcdir.strpath, tgtdir2.strpath)
+
+
+def test_arg_verbose(tmpdir):
+    srcdir = tmpdir.mkdir(_make_unique_name(tmpdir))
+    _make_test_textfile(srcdir)
+    _make_test_textfile(srcdir)
+    _make_test_textfile(srcdir)
+    out = []
+    tgtdir = os.path.join(tmpdir.strpath, _make_unique_name(tmpdir))
+    cmd = cp(srcdir.strpath, tgtdir, recurse=True, out=out)
+    assert len(out) == 0
+    tgtdir = os.path.join(tmpdir.strpath, _make_unique_name(tmpdir))
+    cmd = cp(srcdir.strpath, tgtdir, recurse=True, 
+            verbose=True, out=out)
+    assert len(out) == 4

@@ -14,15 +14,17 @@ class cp(Command):
         src: The source file or source directory, or a list of those.
         dst: The destination file or directory name, or a list of those.
         bool recurse: Copy src recursively.
+        bool verbose: Print verbose output.
 
     Yields:
         shellscript.proto.OutString, shellscript.proto.ErrString:
     """
 
-    def __init__(self, src=None, dst=None, recurse=False, *args, **kwargs):
+    def __init__(self, src=None, dst=None, recurse=False, verbose=False, *args, **kwargs):
         self._src = src
         self._dst = dst
         self._recurse = recurse
+        self._verbose = verbose
         super(cp, self).__init__(*args, **kwargs)
 
     def initialize(self):
@@ -34,16 +36,26 @@ class cp(Command):
         if not self._dstlist:
             self.stop_with_error('No destination given.', 1)
 
+    def _verbose_output(self, src, dst):
+        self.buffer_return(OutString("`%s' -> `%s'" % (src, dst)))
+
     def _copy_dir(self, src, dst):
         if os.path.exists(dst):
             dst = os.path.join(dst, os.path.basename(src))
+        if self._verbose:
+            self._verbose_output(src, dst)
         os.makedirs(dst)
         for entry in os.listdir(src):
             entry_full = os.path.join(src, entry)
             if os.path.isdir(entry_full):
                 self._copy_dir(entry_full, dst)
             else:
-                shutil.copyfile(entry_full, os.path.join(dst, entry))
+                self._copy_file(entry_full, os.path.join(dst, entry))
+
+    def _copy_file(self, src, dst):
+        if self._verbose:
+            self._verbose_output(src, dst)
+        shutil.copyfile(src, dst)
 
     def work(self):
         for src in self._srclist:
@@ -64,7 +76,7 @@ class cp(Command):
                         dstfile = dst
                         if os.path.isdir(dst):
                             dstfile = os.path.join(dst, os.path.basename(src))
-                        shutil.copyfile(src, dstfile)
+                        self._copy_file(src, dstfile)
                     else:
                         self.buffer_return(ErrString(
                             'No such file or directory: %s' % src))
