@@ -1,4 +1,6 @@
 import os
+import stat
+import time
 from shellscript import cp, dev
 
 
@@ -193,3 +195,50 @@ def test_arg_verbose(tmpdir):
     cmd = cp(srcdir.strpath, tgtdir, recurse=True, 
             verbose=True, out=out)
     assert len(out) == 4
+
+
+def _arg_preserve_template(tmpdir, src, kwargs):
+    # wait before creating next file
+    time.sleep(2)
+    tgt1 = os.path.join(tmpdir.strpath, _make_unique_name(tmpdir))
+    cmd = cp(src, tgt1, **kwargs)
+    tgt1_stat = os.stat(tgt1)
+    src_stat = os.stat(src)
+    assert src_stat.st_mode != tgt1_stat.st_mode
+    assert src_stat.st_mtime != tgt1_stat.st_mtime
+    tgt2 = os.path.join(tmpdir.strpath, _make_unique_name(tmpdir))
+    cmd = cp(src, tgt2, preserve="mode", **kwargs)
+    tgt2_stat = os.stat(tgt2)
+    src_stat = os.stat(src)
+    assert src_stat.st_mode == tgt2_stat.st_mode
+    assert src_stat.st_mtime != tgt2_stat.st_mtime
+    tgt3 = os.path.join(tmpdir.strpath, _make_unique_name(tmpdir))
+    cmd = cp(src, tgt3, preserve="timestamps", **kwargs)
+    tgt3_stat = os.stat(tgt3)
+    src_stat = os.stat(src)
+    assert src_stat.st_mode != tgt3_stat.st_mode
+    assert src_stat.st_mtime == tgt3_stat.st_mtime
+    tgt4 = os.path.join(tmpdir.strpath, _make_unique_name(tmpdir))
+    cmd = cp(src, tgt4, preserve="timestamps,mode", **kwargs)
+    tgt4_stat = os.stat(tgt4)
+    src_stat = os.stat(src)
+    assert src_stat.st_mode == tgt4_stat.st_mode
+    assert src_stat.st_mtime == tgt4_stat.st_mtime
+    tgt5 = os.path.join(tmpdir.strpath, _make_unique_name(tmpdir))
+    cmd = cp(src, tgt5, p=True, **kwargs)
+    tgt5_stat = os.stat(tgt5)
+    src_stat = os.stat(src)
+    assert src_stat.st_mode == tgt5_stat.st_mode
+    assert src_stat.st_mtime == tgt5_stat.st_mtime
+
+
+def test_arg_preserve_file(tmpdir):
+    src, txt = _make_test_textfile(tmpdir)
+    os.chmod(src, 0o777)
+    _arg_preserve_template(tmpdir, src, kwargs=dict())
+
+
+def test_arg_preserve_dir(tmpdir):
+    d = tmpdir.mkdir(_make_unique_name(tmpdir))
+    os.chmod(d.strpath, 0o777)
+    _arg_preserve_template(tmpdir, d.strpath, kwargs=dict(recurse=True))
