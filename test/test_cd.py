@@ -5,20 +5,26 @@ from util import original_env
 
 
 def valid_input(tmpdir):
-    yield [], dict(path=os.getcwd())
-    yield [], dict(path=tmpdir.strpath)
+    yield lambda: ([], dict(path=os.getcwd()))
+    yield lambda: ([], dict(path=tmpdir.strpath))
 
 
 def invalid_input(tmpdir):
 
-    p = os.getcwd()
-    while os.path.exists(p):
-        p += 'x'
-    yield [], dict(path=p)
+    def _():
+        p = os.getcwd()
+        while os.path.exists(p):
+            p += 'x'
+        return [], dict(path=p)
+    yield _
 
     home = os.environ['HOME']
-    del os.environ['HOME']
-    yield [], dict()
+    def _():
+        try:
+            del os.environ['HOME']
+        except KeyError: pass
+        return [], dict()
+    yield _
     os.environ['HOME'] = home
 
 
@@ -50,7 +56,8 @@ def test_go_home_via_env(original_env):
 
 def test_no_alteration_on_error(original_env, tmpdir):
     curr = os.getcwd()
-    for args, kwargs in invalid_input(tmpdir):
+    for setup in invalid_input(tmpdir):
+        args, kwargs = setup()
         cd(*args, **kwargs)
         assert os.getcwd() == curr
 

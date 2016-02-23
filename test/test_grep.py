@@ -4,19 +4,21 @@ from shellscript import grep, dev
 
 def valid_input(tmpdir):
 
-    f = tmpdir.join('test_grep1')
-    f.write('ab\ncd\nef\ngh')
-    yield [], dict(regex='.*', f=f.strpath)
+    def _():
+        f = tmpdir.join('test_grep1')
+        f.write('ab\ncd\nef\ngh')
+        return [], dict(regex='.*', f=f.strpath)
+    yield _
 
-    yield [], dict(regex='^def', f=__file__)
+    yield lambda: ([], dict(regex='^def', f=__file__))
 
 
 def invalid_input(tmpdir):
-    yield [], dict(regex='x', f=tmpdir.strpath)
+    yield lambda: ([], dict(regex='x', f=tmpdir.strpath))
 
-    yield [], dict(regex=3, f=__file__)
+    yield lambda: ([], dict(regex=3, f=__file__))
 
-    yield [], dict(f=__file__)
+    yield lambda: ([], dict(f=__file__))
 
 
 def test_from_file(tmpdir):
