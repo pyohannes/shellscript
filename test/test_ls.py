@@ -1,22 +1,27 @@
 import os
 from shellscript import ls, dev
+from util import file_make_unique_name
 
 
 def valid_input(tmpdir):
+    d = tmpdir.mkdir(file_make_unique_name(tmpdir))
 
-    d = tmpdir.mkdir('test_ls')
-    yield [], dict(f=d.strpath)
+    def _():
+        return [], dict(f=d.strpath)
+    yield _
 
-    f = d.join('test_ls_1')
-    f.write('')
-    yield [], dict(f=f.strpath)
+    def _():
+        f = d.join('test_ls_1')
+        f.write('')
+        return [], dict(f=f.strpath)
+    yield _
 
-    yield [], dict(f=os.path.join(d.strpath, '*'))
+    yield lambda: ([], dict(f=os.path.join(d.strpath, '*')))
 
 
 def invalid_input(tmpdir):
 
-    yield [], dict(f=os.path.join(tmpdir.strpath, 'invalid'))
+    yield lambda: ([], dict(f=os.path.join(tmpdir.strpath, 'invalid')))
 
 
 def test_empty(tmpdir):

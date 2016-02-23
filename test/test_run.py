@@ -6,15 +6,17 @@ from shellscript import run, dev
 
 def valid_input(tmpdir):
 
-    yield [sys.executable, '-c', 'quit()'], dict()
+    yield lambda: ([sys.executable, '-c', 'quit()'], dict())
 
 
 def invalid_input(tmpdir):
 
-    p = sys.executable
-    while os.path.exists(p):
-        p += 'a'
-    yield [p], dict()
+    def _():
+        p = sys.executable
+        while os.path.exists(p):
+            p += 'a'
+        return [p], dict()
+    yield _
 
 
 def test_stdout_stderr(tmpdir):

@@ -4,11 +4,11 @@ from shellscript import sleep
 
 
 def valid_input(tmpdir):
-    yield [], dict(secs=0.1)
+    yield lambda: ([], dict(secs=0.1))
 
 
 def invalid_input(tmpdir):
-    yield [], dict(secs=-2)
+    yield lambda: ([], dict(secs=-2))
 
 
 def test_sleep(tmpdir):

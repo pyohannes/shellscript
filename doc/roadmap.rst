@@ -28,21 +28,6 @@ hostname
 -b
 -F
 
-mv
---
---backup
--b
--f
--i
--n
---strip-trailing-slashes
--S
--t
--T
--u
--v
--Z
-
 rm
 --
 -f
@@ -806,6 +791,20 @@ mount
 -o
 -t
 -o
+
+mv
+--
+--backup
+-b
+-f
+-i
+-n
+--strip-trailing-slashes
+-S
+-t
+-T
+-u
+-Z
 
 popd
 ----
