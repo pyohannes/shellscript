@@ -20,12 +20,12 @@ def file_make_unique_name(tmpdir, prefix='', postfix=''):
     return make_full_name(fname)
 
 
-def file_make_text(tmpdir):
+def file_make_text(tmpdir, prefix='', postfix=''):
     txt = None
     with open(__file__, 'r') as f:
         txt = f.read()
     src = tmpdir.join('testfile')
-    f = tmpdir.join(file_make_unique_name(tmpdir))
+    f = tmpdir.join(file_make_unique_name(tmpdir, prefix, postfix))
     f.write(txt)
     return f.strpath, txt
 

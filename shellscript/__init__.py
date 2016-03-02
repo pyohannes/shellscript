@@ -8,6 +8,7 @@ from .cmd.grep import grep
 from .cmd.ls import ls
 from .cmd.mv import mv
 from .cmd.pwd import pwd
+from .cmd.rm import rm
 from .cmd.run import run
 from .cmd.sleep import sleep
 from .cmd.yes import yes
@@ -19,5 +20,5 @@ def get_all_commands():
 
     """
     return [
-            cat, cp, cd, grep, ls, mv, pwd, run, sleep, yes
+            cat, cp, cd, grep, ls, mv, pwd, rm, run, sleep, yes
            ]
