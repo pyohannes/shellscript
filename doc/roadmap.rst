@@ -28,34 +28,12 @@ hostname
 -b
 -F
 
-rm
---
--f
--i
--I
---interactive
---one-file-system
---no-preserve-root
---preserve-root
--r
--d
--v
 sleep
 -----
 
 tee
 ---
 -a
-
-touch
------
--a
--c
--d
--h
--m
--r
--t
 
 uname
 -----
@@ -904,6 +882,13 @@ pushd
 +n
 -0-9
 
+rm
+--
+--one-file-system
+--no-preserve-root
+--preserve-root
+-d
+
 scp
 ---
 -12346
@@ -993,6 +978,13 @@ top
 -S
 -u
 -w
+
+touch
+-----
+-d
+-h
+-r
+-t
 
 umount
 ------

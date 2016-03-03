@@ -11,6 +11,7 @@ from .cmd.pwd import pwd
 from .cmd.rm import rm
 from .cmd.run import run
 from .cmd.sleep import sleep
+from .cmd.touch import touch
 from .cmd.yes import yes
 
 
@@ -20,5 +21,5 @@ def get_all_commands():
 
     """
     return [
-            cat, cp, cd, grep, ls, mv, pwd, rm, run, sleep, yes
+            cat, cp, cd, grep, ls, mv, pwd, rm, run, sleep, touch, yes
            ]
