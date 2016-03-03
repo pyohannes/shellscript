@@ -882,13 +882,6 @@ pushd
 +n
 -0-9
 
-rm
---
---one-file-system
---no-preserve-root
---preserve-root
--d
-
 scp
 ---
 -12346
