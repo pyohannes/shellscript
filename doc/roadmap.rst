@@ -59,9 +59,6 @@ which
 -----
 -a
 
-whoami
-------
-
 yes
 ---
 
