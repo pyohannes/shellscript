@@ -4,6 +4,7 @@ from .util import alias, astr
 from .cmd.cat import cat
 from .cmd.cd import cd
 from .cmd.cp import cp
+from .cmd.date import date
 from .cmd.grep import grep
 from .cmd.ls import ls
 from .cmd.mv import mv
@@ -22,6 +23,6 @@ def get_all_commands():
 
     """
     return [
-            astr, cat, cp, cd, grep, ls, mv, pwd, rm, run, sleep, touch, 
+            cat, cp, cd, date, grep, ls, mv, pwd, rm, run, sleep, touch, 
             whoami, yes
            ]
