@@ -1,5 +1,5 @@
 from .proto import dev
-from .util import alias
+from .util import alias, astr
 
 from .cmd.cat import cat
 from .cmd.cd import cd
@@ -22,5 +22,6 @@ def get_all_commands():
 
     """
     return [
-            cat, cp, cd, grep, ls, mv, pwd, rm, run, sleep, touch, whoami, yes
+            astr, cat, cp, cd, grep, ls, mv, pwd, rm, run, sleep, touch, 
+            whoami, yes
            ]

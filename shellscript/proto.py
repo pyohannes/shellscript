@@ -220,6 +220,9 @@ class Command(OutputWriterMixin):
         r += '>'
         return r
 
+    def __str__(self):
+        return '\n'.join(list(self))
+
     # for derived classes
 
     def initialize(self):
