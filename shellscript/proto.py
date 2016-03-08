@@ -29,7 +29,20 @@ class dev(object):
     nul = 4
 
 
-class OutString(str):
+class _BaseString(str):
+    def __new__(cls, s, linebreak=None, *args, **kwargs):
+        obj = str.__new__(cls, s, *args, **kwargs)
+        if isinstance(s, _BaseString) and linebreak is None:
+            obj.linebreak = s.linebreak
+        else:
+            obj.linebreak = bool(linebreak)
+        return obj
+
+    def to_py_str(self):
+        return '%s%s' % (self, '\n' if self.linebreak else '')
+
+
+class OutString(_BaseString):
     """
     A line of normal output yielded by a command instance. This corresponds
     to a line of stdout.
@@ -37,7 +50,7 @@ class OutString(str):
     pass
 
 
-class ErrString(str):
+class ErrString(_BaseString):
     """
     A line of error output yielded by a command instance. This corresponds
     to a line of stderr.
@@ -81,7 +94,8 @@ class InputReaderMixin(object):
             else:
                 self._active_input_file = open(self._input_files[self._input_files_pos])
         try:
-            return self._active_input_file.__next__().strip('\n')
+            l = self._active_input_file.__next__()
+            return OutString(l.strip('\n'), l.endswith('\n'))
         except StopIteration:
             self._active_input_file.close()
             self._active_input_file = None
@@ -98,6 +112,9 @@ class OutputWriterMixin(object):
         def close(self):
             pass
 
+        def write(self, l):
+            self._target.write(l.to_py_str())
+
 
     class StreamWriter(Writer):
 
@@ -111,8 +128,8 @@ class OutputWriterMixin(object):
             elif obj == dev.err:
                 self._target = sys.stderr
 
-        def write(self, l):
-            self._target.write('%s\n' % l)
+#        def write(self, l):
+#            self._target.write('%s\n' % l)
 
 
     class FileWriter(Writer):
@@ -121,9 +138,9 @@ class OutputWriterMixin(object):
         def check(o):
             return hasattr(o, 'write') and hasattr(o, 'tell')
 
-        def write(self, l):
-            self._target.write('%s%s' % ( '\n' if self._target.tell() else '', 
-                l ))
+#        def write(self, l):
+#            self._target.write('%s%s' % ( '\n' if self._target.tell() else '', 
+#                l ))
 
 
     class ListWriter(Writer):
@@ -319,7 +336,9 @@ class Command(OutputWriterMixin):
                     raise StopIteration
                 else:
                     try:
-                        ret = self.work() or OutString('')
+                        ret = self.work()
+                        if ret is None:
+                            ret = OutString('', True)
                     except StopIteration:
                         self._stop = True
                         continue
@@ -386,58 +405,3 @@ def resolve(arg):
             arg = exp
         except TypeError: pass
     return arg
-
-
-
-
-#import sys
-#import string
-#import os
-#import glob
-#
-##import shellscript.settings
-#
-#
-#class OnceReturnGenerator(Generator):
-#
-#    def next(self):
-#        if hasattr(self, '_step_done'):
-#            raise StopIteration()
-#        else:
-#            self._step_done = True
-#        return self.work()
-#
-#
-#def resolve(arg):
-#    if isinstance(arg, str):
-#        arg = string.Template(arg).safe_substitute(os.environ)
-#        if glob.has_magic(arg):
-#            arg = glob.glob(arg)
-#            arg.sort()
-#        else:
-#            arg = [ arg ]
-#    return arg
-#
-#
-#def resolveargs(f):
-#    def _wrapper(*args, **kwargs):
-#        args = [ _resolve_arg(a) for a in args ]
-#        kwargs = dict([ (k, _resolve_arg(a)) for k, a in kwargs.items() ])
-#        return f(*args, **kwargs)
-#    return _wrapper
-#
-#
-#def openfiles(files, *args, **kwargs):
-#    if isinstance(files, str):
-#        files = [ files ]
-#    for f in files:
-#        with open(f, *args, **kwargs) as fobj:
-#            for line in fobj:
-#                yield line
-#
-#
-#def out(generator):
-#    try:
-#        return generator.out()
-#    except AttributeError:
-#        return []

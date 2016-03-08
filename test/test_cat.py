@@ -1,5 +1,7 @@
 import os
+
 from shellscript import cat, dev
+from util import file_make_unique_name, file_equals
 
 
 def valid_input(tmpdir):
@@ -52,3 +54,12 @@ def test_simple_from_list(tmpdir):
         fs.append(f.strpath)
     cmd = cat(f=fs, out=dev.itr)
     assert list(cmd) == text
+
+
+def test_newline_handling(tmpdir):
+    text = [ 'ab', '', 'cd', 'ef', 'gh', '' ]
+    f = tmpdir.join(file_make_unique_name(tmpdir))
+    f.write('\n'.join(text))
+    f_out = tmpdir.join(file_make_unique_name(tmpdir))
+    cmd = cat(f=f.strpath, out=f_out.strpath)
+    assert file_equals(f.strpath, f_out.strpath)

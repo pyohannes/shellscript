@@ -32,3 +32,25 @@ def astr(cmd, *args, **kwargs):
     """
     kwargs['out'] = dev.itr
     return str(cmd(*args, **kwargs))
+
+
+def to_py_str_list(l):
+    """Convert a list of *shellscript.proto._BaseString* objects into pure
+    Python *str*s.
+
+    The number of elements in both lists may differ, due to the different
+    treatment of newlines.
+
+    Parameters:
+        [ *shellscript.proto._BaseString* ]: A list of shellscript strings.
+
+    returns:
+        [ *str* ]: A list of Python strings.
+    """
+    ret = [ str(s) for s in l ]
+    try:
+        if l and l[-1].linebreak:
+            ret.append('')
+    except AttributeError:
+        pass
+    return ret

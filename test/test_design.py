@@ -1,5 +1,6 @@
 import shellscript
 from shellscript.proto import OutString, ErrString, dev
+from shellscript.util import to_py_str_list
 
 
 # Tests that assure that all shellscript commands correctly implement the
@@ -111,11 +112,12 @@ def test_redirection(tmpdir):
         # iter
         args, kwargs = setup()
         c = command(out=dev.itr, **kwargs) 
-        iter_content = list(c)
+        iter_content = to_py_str_list(list(c))
         # list
         list_content = []
         args, kwargs = setup()
         c = command(out=list_content, **kwargs) 
+        list_content = to_py_str_list(list_content)
         # file as string
         fname = tmpdir.join('test_%d_out_fname.txt' % num).strpath
         args, kwargs = setup()
@@ -127,6 +129,9 @@ def test_redirection(tmpdir):
         args, kwargs = setup()
         c = command(**kwargs)
         fname_def_content = _read_file(fname_def)
+        if fobj_content != iter_content:
+            import pdb
+            pdb.set_trace()
         assert fobj_content == iter_content == list_content == fname_content \
                 == fname_def_content
 
