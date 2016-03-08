@@ -53,6 +53,7 @@ class InputReaderMixin(object):
         self._input_files = files
         self._active_input_file = None
         self._input_files_pos = -1
+        self._input_newline_pending = False
 
     @property
     def curr_input_file_name(self):
@@ -75,13 +76,19 @@ class InputReaderMixin(object):
             return self._inp.get_line().strip('\n')
 
         if not self._active_input_file:
+            if self._input_newline_pending:
+                self._input_newline_pending = False
+                return ''
             self._input_files_pos += 1
             if self._input_files_pos >= len(self._input_files):
                 raise StopIteration
             else:
                 self._active_input_file = open(self._input_files[self._input_files_pos])
         try:
-            return self._active_input_file.__next__().strip('\n')
+            l = self._active_input_file.__next__()
+            if l.endswith('\n'):
+                self._input_newline_pending = True
+            return l.strip('\n')
         except StopIteration:
             self._active_input_file.close()
             self._active_input_file = None
