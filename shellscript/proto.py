@@ -85,7 +85,7 @@ class InputReaderMixin(object):
 
     def get_input_line(self):
         if self.is_ipipe:
-            return self._inp.get_line().strip('\n')
+            return self._inp.get_line()
 
         if not self._active_input_file:
             self._input_files_pos += 1
@@ -128,19 +128,12 @@ class OutputWriterMixin(object):
             elif obj == dev.err:
                 self._target = sys.stderr
 
-#        def write(self, l):
-#            self._target.write('%s\n' % l)
-
 
     class FileWriter(Writer):
 
         @staticmethod
         def check(o):
             return hasattr(o, 'write') and hasattr(o, 'tell')
-
-#        def write(self, l):
-#            self._target.write('%s%s' % ( '\n' if self._target.tell() else '', 
-#                l ))
 
 
     class ListWriter(Writer):
@@ -329,7 +322,7 @@ class Command(OutputWriterMixin):
     def get_line(self):
         while True:
             ret = self.buffer_pop()
-            if not ret:
+            if ret is None:
                 if self._stop:
                     globals()['ret'] = self.ret
                     self.finalize()
@@ -337,8 +330,8 @@ class Command(OutputWriterMixin):
                 else:
                     try:
                         ret = self.work()
-                        if ret is None:
-                            ret = OutString('', True)
+                        #if ret is None:
+                        #    ret = OutString('', True)
                     except StopIteration:
                         self._stop = True
                         continue

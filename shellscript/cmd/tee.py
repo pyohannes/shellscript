@@ -31,7 +31,6 @@ class tee(Command, InputReaderMixin):
             self._fobjs = [ open(f, flags) for f in resolve(self._f) ]
         else:
             self._fobjs = None
-        self._first_line = True
         self.initialize_input([])
 
     def finalize(self):
@@ -44,10 +43,7 @@ class tee(Command, InputReaderMixin):
             l = self.get_input_line()
             if self._fobjs:
                 for f in self._fobjs:
-                    if not self._first_line:
-                        f.write('\n')
-                    f.write(l)
-                self._first_line = False
+                    f.write(l.to_py_str())
             else:
                 self.buffer_return(OutString(l))
             return OutString(l)

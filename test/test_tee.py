@@ -42,11 +42,13 @@ def test_append(tmpdir):
     cmd = cat(__file__, out=tee(outf2, out=outl2))
     cmd = cat(__file__, out=tee(outf2, append=True, out=outl2))
     with open(outf2, 'r') as f2:
-        assert f2.read().split('\n') == outl2
+        assert f2.read() == ''.join([ l.to_py_str() for l in outl2 ])
 
 
 def test_stdout(tmpdir):
     outl = []
     cmd = cat(__file__, out=tee(out=outl))
     with open(__file__, 'r') as f:
-        assert (len(f.read().split('\n')) * 2) == len(outl)
+        fstr = f.read()
+        ostr = ''.join([ l.to_py_str() for l in outl ])
+        assert (len(fstr.split('\n')) * 2 - 1) == len(ostr.split('\n'))

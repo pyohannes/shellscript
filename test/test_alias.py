@@ -13,4 +13,4 @@ def test_ls_all(tmpdir):
 def test_arg_order(tmpdir):
     p = alias(run, sys.executable, '-c')
     cmd = p('print("ab\\ncd")', out=dev.itr)
-    assert list(cmd) == [ 'ab', 'cd' ]
+    assert list(cmd) == [ 'ab', 'cd', '' ] # print adds a newline at the end
