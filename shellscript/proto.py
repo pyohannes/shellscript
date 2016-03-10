@@ -62,10 +62,11 @@ class InputReaderMixin(object):
     """
     """
 
-    def initialize_input(self, files):
+    def initialize_input(self, files, file_change_callback=None):
         self._input_files = files
         self._active_input_file = None
         self._input_files_pos = -1
+        self._file_change_cb = file_change_callback or (lambda fname: None)
 
     @property
     def curr_input_file_name(self):
@@ -92,7 +93,9 @@ class InputReaderMixin(object):
             if self._input_files_pos >= len(self._input_files):
                 raise StopIteration
             else:
-                self._active_input_file = open(self._input_files[self._input_files_pos])
+                fname = self._input_files[self._input_files_pos]
+                self._active_input_file = open(fname)
+                self._file_change_cb(fname)
         try:
             l = self._active_input_file.__next__()
             return OutString(l.strip('\n'), l.endswith('\n'))

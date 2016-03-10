@@ -14,6 +14,7 @@ from .cmd.run import run
 from .cmd.sleep import sleep
 from .cmd.tee import tee
 from .cmd.touch import touch
+from .cmd.wc import wc
 from .cmd.whoami import whoami
 from .cmd.yes import yes
 
@@ -25,5 +26,5 @@ def get_all_commands():
     """
     return [
             cat, cp, cd, date, grep, ls, mv, pwd, rm, run, sleep, tee, touch, 
-            whoami, yes
+            wc, whoami, yes
            ]
