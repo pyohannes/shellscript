@@ -34,6 +34,8 @@ class _BaseString(str):
         obj = str.__new__(cls, s, *args, **kwargs)
         if isinstance(s, _BaseString) and linebreak is None:
             obj.linebreak = s.linebreak
+        elif linebreak is None:
+            obj.linebreak = True
         else:
             obj.linebreak = bool(linebreak)
         return obj

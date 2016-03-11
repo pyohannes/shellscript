@@ -111,27 +111,24 @@ def test_redirection(tmpdir):
         fobj_content = _read_file(fname)
         # iter
         args, kwargs = setup()
-        c = command(out=dev.itr, **kwargs) 
+        c = command(*args, out=dev.itr, **kwargs) 
         iter_content = to_py_str_list(list(c))
         # list
         list_content = []
         args, kwargs = setup()
-        c = command(out=list_content, **kwargs) 
+        c = command(*args, out=list_content, **kwargs) 
         list_content = to_py_str_list(list_content)
         # file as string
         fname = tmpdir.join('test_%d_out_fname.txt' % num).strpath
         args, kwargs = setup()
-        c = command(out=fname, **kwargs)
+        c = command(*args, out=fname, **kwargs)
         fname_content = _read_file(fname)
         # default redirection
         fname_def = tmpdir.join('test_%d_out_fname_def.txt' % num).strpath
         shellscript.settings.default_out = fname_def
         args, kwargs = setup()
-        c = command(**kwargs)
+        c = command(*args, **kwargs)
         fname_def_content = _read_file(fname_def)
-        if fobj_content != iter_content:
-            import pdb
-            pdb.set_trace()
         assert fobj_content == iter_content == list_content == fname_content \
                 == fname_def_content
 
