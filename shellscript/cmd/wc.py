@@ -112,5 +112,8 @@ class wc(Command, InputReaderMixin):
                 ret = OutString(self._get_return_line(), True)
                 self.buffer_return(ret)
             raise
+        except IOError:
+            self.ret = 1
+            return ErrString(sys.exc_info()[1])
         except:
             self.stop_with_error(sys.exc_info()[1], 1)

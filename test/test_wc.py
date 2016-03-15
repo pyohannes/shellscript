@@ -86,3 +86,17 @@ def test_max_line_length(tmpdir):
             sorted([ [ '7', f1.strpath ], 
               [ '8', f2.strpath ],
               [ '8', 'total' ] ])
+
+
+def test_files_mixed_existance(tmpdir):
+    f1 = tmpdir.join(file_make_unique_name(tmpdir))
+    f1.write('a\nbc\ndefgh\nijklmno\np')
+    f2 = tmpdir.join(file_make_unique_name(tmpdir))
+    out = []
+    err = []
+    wc(f=[f1.strpath, f2.strpath], lines=True, out=out, err=err)
+    assert len(err) == 1
+    assert sorted([ o.split() for o in out ]) == \
+            sorted([ [ '5', f1.strpath ],
+                     [ '5', 'total' ] ])
+
