@@ -1,4 +1,4 @@
-from .proto import dev
+from .proto import dev, Command, pipe
 
 
 def alias(cmd, *alias_args, **alias_kwargs):
@@ -30,7 +30,16 @@ def astr(cmd, *args, **kwargs):
     Returns:
         *str*: *stdout* of *cmd* as string.
     """
-    kwargs['out'] = dev.itr
+    if 'out' in kwargs:
+        out = kwargs['out']
+        if isinstance(out, tuple):
+            out = pipe(*out)
+        if isinstance(kwargs['out'], Command):
+            while out.is_opipe:
+                out = out._out
+            out._out = dev.itr
+    else:
+        kwargs['out'] = dev.itr
     return str(cmd(*args, **kwargs))
 
 
@@ -47,7 +56,7 @@ def to_py_str_list(l):
     returns:
         [ *str* ]: A list of Python strings.
     """
-    ret = [ str(s) for s in l ]
+    ret = [ str(s) for s in l if (s or s.linebreak) ]
     try:
         if l and l[-1].linebreak:
             ret.append('')

@@ -50,7 +50,6 @@ class touch(Command):
                         t if 'access' in self._time else times_orig.st_atime,
                         t if 'modify' in self._time else times_orig.st_mtime
                         )
-                print('###', times)
                 os.utime(f, times)
             except:
                 self.buffer_return(ErrString(sys.exc_info()[1]))

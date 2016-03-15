@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from shellscript import wc, cat, dev, astr
+from shellscript import wc, cat, dev, astr, pipe
 from util import file_make_unique_name, file_make_text, original_env
 
 
@@ -18,10 +18,13 @@ def test_simple(tmpdir):
     f = tmpdir.join(file_make_unique_name(tmpdir))
     f.write('\n'.join(text))
     out1 = astr(wc, f=f.strpath)
-    #out2 = astr(cat, f=f.strpath, out=wc())
-    out2 = list(cat(f=f.strpath, out=wc()))
+    out2 = list(cat(f=f.strpath, out=pipe(wc, out=dev.itr)))
+    out3 = []
+    cat(f=f.strpath, out=pipe(wc, out=out3))
     assert out1.split() == [ '4', '4', '11', f.strpath ]
     assert out2[0].split() == [ '4', '4', '11' ]
+    assert len(out3) == 1
+    assert out3[0].split() == [ '4', '4', '11' ]
 
 
 def test_glob(tmpdir,  original_env):

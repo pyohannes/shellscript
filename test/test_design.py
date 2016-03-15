@@ -40,7 +40,6 @@ def test_valid(tmpdir):
         with open(fname, 'w') as f:
             for out in (dev.out, dev.err, dev.itr, dev.nul, f, l):
                 args, kwargs = setup()
-                print('###', command, args, kwargs)
                 c = command(*args, out=out, **kwargs) 
                 if c.ret is None:
                     list(c)
@@ -112,7 +111,8 @@ def test_redirection(tmpdir):
         # iter
         args, kwargs = setup()
         c = command(*args, out=dev.itr, **kwargs) 
-        iter_content = to_py_str_list(list(c))
+        l = list(c)
+        iter_content = to_py_str_list(l)
         # list
         list_content = []
         args, kwargs = setup()

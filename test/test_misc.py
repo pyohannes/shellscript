@@ -11,5 +11,5 @@ def test_command_as_input(tmpdir):
     cmd = cat(ls(os.path.join(tmpdir.strpath, '*.py'), out=dev.itr), 
             out=dev.itr)
     cmd_nested = cat(ls(os.path.join(tmpdir.strpath, '*'), 
-        out=grep('py$', out=dev.itr)), out=dev.itr)
+        out=pipe(grep, 'py$', out=dev.itr)), out=dev.itr)
     assert list(cmd_nested) == list(cmd) == [ t for t in files if t.endswith('.py') ]

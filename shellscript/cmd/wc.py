@@ -35,7 +35,7 @@ class wc(Command, InputReaderMixin):
 
     def initialize(self):
         super(wc, self).initialize()
-        self.initialize_input(resolve(self._f) or [],
+        self.initialize_input(resolve(self._f or []),
                 file_change_callback=self._count_new_file)
         self._counts = []
         self._count_filename = None
@@ -46,8 +46,6 @@ class wc(Command, InputReaderMixin):
         self._count_nr = 0
 
     def _count_new_file(self, fname):
-        #import pdb
-        #pdb.set_trace()
         if self._count_nr > 0:
             self._count_finish()
         self._count_nr += 1
@@ -104,13 +102,15 @@ class wc(Command, InputReaderMixin):
             self._count_words += len(l.split())
             self._count_max_line = max(self._count_max_line, linelen)
             if self._counts:
-                return OutString(self._get_return_line(), True)
+                ret = OutString(self._get_return_line(), True)
+                return ret
         except StopIteration:
             self._count_finish()
             if self.len_input_files > 1:
                 self._make_total()
             while self._counts:
-                self.buffer_return(OutString(self._get_return_line(), True))
+                ret = OutString(self._get_return_line(), True)
+                self.buffer_return(ret)
             raise
         except:
             self.stop_with_error(sys.exc_info()[1], 1)

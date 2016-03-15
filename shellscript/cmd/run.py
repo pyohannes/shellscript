@@ -74,12 +74,12 @@ class run(Command, InputReaderMixin):
         while True:
             try:
                 index = buf.index('\n')
-                ret.append(''.join(buf[:index]))
+                ret.append(OutString(''.join(buf[:index]), True))
                 buf[:] = buf[index+1:]
             except:
                 break
         if finished:
-            ret.append(''.join(buf))
+            ret.append(OutString(''.join(buf), False))
             buf.clear()
         return ret
 

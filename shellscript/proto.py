@@ -63,7 +63,6 @@ class ErrString(_BaseString):
 class InputReaderMixin(object):
     """
     """
-
     def initialize_input(self, files, file_change_callback=None):
         self._input_files = files
         self._active_input_file = None
@@ -81,14 +80,22 @@ class InputReaderMixin(object):
     def len_input_files(self):
         return len(self._input_files)
 
-    @property
-    def is_ready(self):
-        mixinready = len(self._input_files) or self.is_ipipe
-        return mixinready and super(self, InputReaderMixin).is_ready
+    def _is_ready_for_interaction(self):
+        try:
+            if self._wait_for_input:
+                return len(self._input_files) or self.is_ipipe
+            else:
+                return True
+        except AttributeError:
+            return False
 
     def get_input_line(self):
         if self.is_ipipe:
             return self._inp.get_line()
+
+        if not self.len_input_files and sys.stdin.isatty():
+            l = sys.stdin.readline()
+            return OutString(l.strip('\n'), l.endswith('\n'))
 
         if not self._active_input_file:
             self._input_files_pos += 1
@@ -201,17 +208,41 @@ class OutputWriterMixin(object):
         self._outwriter.write(l)
 
 
+def pipe(cmd, *args, **kwargs):
+    if not kwargs:
+        if len(args) == 1 and isinstance(args[0], dict):
+            kwargs = args[0]
+            args = []
+        elif len(args) == 2 and isinstance(args[0], list) \
+                and isinstance(args[1], dict):
+            kwargs = args[1]
+            args = args[0]
+    return cmd(*args, _wait_for_input=True, **kwargs)
+
+
 class Command(OutputWriterMixin):
 
-    def __init__(self, out=None, err=None, outerr=None):
+    def __init__(self, out=None, err=None, outerr=None, _wait_for_input=False):
         if outerr is not None:
             self._out = self._err = outerr
         else:
             self._out = settings.default_out if out is None else out
             self._err = settings.default_err if err is None else err
+        if isinstance(self._out, tuple):
+            if self._out == self._err:
+                self._out = self._err = pipe(*self._out)
+            else:
+                self._out = pipe(*self._out)
+        if isinstance(self._err, tuple):
+            self._err = pipe(*self._err)
         if self.is_opipe and self.is_epipe and self._out != self._err:
             raise ProtocolError('Invalid pipe: err pipe cannot differ from ' \
                     'out pipe.')
+        for stream in (self._out, self._err):
+            if isinstance(stream, Command) and not stream._wait_for_input:
+                raise ProtocolError('Invalid pipe: must not be an ' \
+                        'initialized Command.')
+        self._wait_for_input = _wait_for_input
         if self.is_opipe:
             self._out._inp = self
         self.ret = None
@@ -311,7 +342,10 @@ class Command(OutputWriterMixin):
 
     @property
     def is_ready(self):
-        return True
+        return all([ 
+            cls._is_ready_for_interaction(self) \
+            for cls in type(self).mro() \
+            if hasattr(cls, '_is_ready_for_interaction') ])
 
     @property
     def is_oiter(self):

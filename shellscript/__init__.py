@@ -1,4 +1,4 @@
-from .proto import dev
+from .proto import dev, pipe
 from .util import alias, astr
 
 from .cmd.cat import cat
